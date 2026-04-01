@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "F:\\Programming\\csharp\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj": {}
+    "C:\\Users\\sarad\\OneDrive\\Documenti\\csharp savi\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj": {}
   },
   "projects": {
-    "F:\\Programming\\csharp\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj": {
+    "C:\\Users\\sarad\\OneDrive\\Documenti\\csharp savi\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\Programming\\csharp\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj",
+        "projectUniqueName": "C:\\Users\\sarad\\OneDrive\\Documenti\\csharp savi\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj",
         "projectName": "ProgEsameUniVPM",
-        "projectPath": "F:\\Programming\\csharp\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj",
-        "packagesPath": "C:\\Users\\savid\\.nuget\\packages\\",
-        "outputPath": "F:\\Programming\\csharp\\ProgEsameUniVPM\\obj\\",
+        "projectPath": "C:\\Users\\sarad\\OneDrive\\Documenti\\csharp savi\\ProgEsameUniVPM\\ProgEsameUniVPM.csproj",
+        "packagesPath": "C:\\Users\\sarad\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\sarad\\OneDrive\\Documenti\\csharp savi\\ProgEsameUniVPM\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "D:\\VS\\Installer\\shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\savid\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\sarad\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -44,7 +40,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
@@ -65,7 +61,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
