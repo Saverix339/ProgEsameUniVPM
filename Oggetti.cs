@@ -21,7 +21,31 @@ public class Armi : Oggetto
 {
     public int potenza=2;
     public int stamina=2;
+
+    public int LivelloRarità = 0;
+
+    public string PrendiNome()
+    {
+        switch (LivelloRarità)
+        {
+            case 1: return Nome + " Raro";
+            case 2: return Nome + " Epico";
+            case 3: return Nome + " Leggendario";
+            default: return Nome;
+        }
+    }
     
+    public string PrendiDesc()
+    {
+        switch (LivelloRarità)
+        {
+            case 1: return Descrizione + "\nRarita': Raro";
+            case 2: return Descrizione + "\nRarita': Epico";
+            case 3: return Descrizione + "\nRarita': Leggendario";
+            default: return Descrizione;
+        }
+    }
+
     public static Armi Spada()
     {
         Armi s = new()
@@ -57,6 +81,60 @@ public class Armi : Oggetto
             stamina=1
         };
         return s;
+    }
+
+    public static void RendiRara(Armi a)
+    {
+        if(a.LivelloRarità < 0)
+        {
+            throw new Exception("Livello rarità non valido.");
+        }
+
+        if(a.LivelloRarità >= 1)
+        {
+            Console.WriteLine("L'arma " + a.Nome + " è già potenziata!");
+            return;
+        }
+        a.LivelloRarità = 1; // 1 = raro
+        a.potenza *= 2;
+        a.stamina +=1;
+        /*a.Nome += " Rara";
+        a.Descrizione += " Questa arma è potenziata e di rarità 'Rara'.";*/
+    }
+    public static void RendiEpico(Armi a)
+    {
+        if(a.LivelloRarità < 0)
+        {
+            throw new Exception("Livello rarità non valido.");
+        }
+        if(a.LivelloRarità >= 2)
+        {
+            Console.WriteLine("L'arma " + a.Nome + " è già potenziata!");
+            return;
+        }else if(a.LivelloRarità == 1)
+        {
+            // r0 -> r1
+        }
+        a.LivelloRarità = 2; // 2 = epico
+        a.potenza = (int)Math.Floor(a.potenza * 1.5f);
+        a.stamina += 1;
+        /*a.Nome += " Epico";
+        a.Descrizione += " Questa arma è molto potenziata e di rarità 'Epica'.";*/
+    }
+    public static void RendiLeggendario(Armi a)
+    {
+        if(a.LivelloRarità < 0)
+        {
+            throw new Exception("Livello rarità non valido.");
+        }
+        // 2 > 4 > 6 > 9
+        // 1 > 2 > 3 > 4
+        // 3 > 6 > 9 > 13
+        a.LivelloRarità = 3; // 2 = epico
+        a.potenza = (int)Math.Floor(a.potenza * 1.5f);
+        // a.stamina += 1;
+        /*a.Nome += " Leggendario";
+        a.Descrizione += " Questa arma è suprema, di rarità 'Leggendaria'.";*/
     }
 }
 
