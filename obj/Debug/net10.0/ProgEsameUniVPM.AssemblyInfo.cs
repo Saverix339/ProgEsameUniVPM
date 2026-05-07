@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProgEsameUniVPM")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d02e4261135865aed9f8df2a591429a6b60436f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fbb8c86c1aa0088d5f415d1d1cf5fb91c6424c4b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ProgEsameUniVPM")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ProgEsameUniVPM")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
