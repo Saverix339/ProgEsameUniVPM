@@ -1,0 +1,24 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Visual Studio cache
+.vs/
+
+# NuGet
+*.nupkg
+packages/
+
+# .NET Core
+project.lock.json
+artifacts/ 
