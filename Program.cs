@@ -5,6 +5,11 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
-        //pippooooooooooo
+        Dictionary<string, string> inputs = new Dictionary<string, string>()
+        {
+            {"migliora arma", "migliora"},
+            {"migliora", "migliora"},
+            //todo
+        };
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime;
 using ProgEsameUniVPM;
 public static class Giocatore
 {
@@ -12,12 +13,12 @@ public static class Giocatore
 
     public static int Oro {get; private set;}
 
-    /*
-    
-    */
-
     public static Stack<Oggetto> Inventario = new();
     public static int InventarioMax {get; private set;} = 10;
+
+    public static Armi? Arma;
+
+    public static List<StatusEffect> statusEffects = new();
 
     public static void AggiungiOro(int valore)
     {
@@ -84,4 +85,28 @@ public static class Giocatore
         }
         Inventario.Push(o);
     }
+
+    public static Oggetto RimuoviOggettoInventario()
+    {
+        return Inventario.Pop();
+    }
+}
+
+public class StatusEffect
+{
+    public string Name = "";
+    public required string target;
+    public event EventHandler? onTurnStart;
+    //todo
+
+    public StatusEffect Bruciatura(string target)
+    {
+        StatusEffect burn = new(){target = target};
+        if(target == "giocatore")
+        {
+            onTurnStart += (sender, e) => Giocatore.CambiaPV(-1, danno: true);
+        }
+        return burn;
+    }
+    // status effect bleed
 }
