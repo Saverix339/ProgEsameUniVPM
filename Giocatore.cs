@@ -20,6 +20,11 @@ public static class Giocatore
 
     public static List<StatusEffect> statusEffects = new();
 
+    public static void InserimentoNome(string s)
+    {
+        Nome = s;
+    }
+
     public static void AggiungiOro(int valore)
     {
         Oro += valore;
