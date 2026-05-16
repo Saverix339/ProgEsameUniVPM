@@ -2,6 +2,13 @@ using System;
 namespace ProgEsameUniVPM;
 public static class UI
 {
+    /* private enum StatoInit {
+        ScriviNome,
+        PrendiArma,
+        Conferma,
+        FineInit
+    }
+    private static StatoInit stato; */
     public static void MostraInizioPersonaggio()
     {
         Console.WriteLine("Inserisci il nome del tuo personaggio: \n");
