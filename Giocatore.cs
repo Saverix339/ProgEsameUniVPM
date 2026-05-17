@@ -18,6 +18,8 @@ public static class Giocatore
 
     public static Armi? Arma;
 
+    public static void EquipaggiaArma(Armi arma) => Arma = arma;
+
     public static List<StatusEffect> statusEffects = new();
 
     public static void InserimentoNome(string s)

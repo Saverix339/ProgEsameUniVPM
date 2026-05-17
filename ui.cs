@@ -39,4 +39,15 @@ public static class UI
         return Console.ReadLine()?.Trim().ToLower() ?? "";
     }
 
+    public static void GameOver()
+    {
+        Console.WriteLine($"\n===FINE===\n{Giocatore.Nome} è morto/a, premi un tasto per chiudere il gioco.");
+        Console.ReadKey();
+        Environment.Exit(0);
+    }
+
+    public static void MostraErrore(string s)
+    {
+        Console.WriteLine("ERRORE: " + s);
+    }
 }
