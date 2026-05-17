@@ -1,33 +1,43 @@
 using System;
 using System.Runtime;
 using ProgEsameUniVPM;
-public static class Giocatore
+public class Giocatore
 {
-    public static string Nome {get; private set;}  = "";
+    public string Nome {get; private set;}  = "";
 
-    public static int PuntiVita {get; private set;}
-    public static int PuntiVitaMax {get; private set;}
+    public int PuntiVita {get; set;}
+    public int PuntiVitaMax {get; set;}
 
-    public static int Stamina {get; private set;}
-    public static int StaminaMax {get; private set;}
+    public int Stamina {get; set;}
+    public int StaminaMax {get; set;}
 
-    public static int Oro {get; private set;}
+    public int Oro {get; set;}
 
-    public static Stack<Oggetto> Inventario = new();
-    public static int InventarioMax {get; private set;} = 10;
+    public Stack<Oggetto> Inventario {get; private set;} = new();
+    public int InventarioMax {get; private set;} = 10;
 
-    public static Armi? Arma;
+    public Armi? Arma { get; private set; }
 
-    public static void EquipaggiaArma(Armi arma) => Arma = arma;
+    public void EquipaggiaArma(Armi arma) => Arma = arma;
 
-    public static List<StatusEffect> statusEffects = new();
+    public List<StatusEffect> StatusEffects { get; } = new();
 
-    public static void InserimentoNome(string s)
+    public Giocatore(string nome, int pvMax = 20, int staminaMax = 10)
+    {
+        Nome = nome;
+        PuntiVita = pvMax;
+        PuntiVitaMax = pvMax;
+        Stamina = staminaMax;
+        StaminaMax = staminaMax;
+        Oro = 0;
+    }
+
+    public void InserimentoNome(string s)
     {
         Nome = s;
     }
 
-    public static void AggiungiOro(int valore)
+    public void AggiungiOro(int valore)
     {
         Oro += valore;
         if (Oro < 0)
@@ -44,18 +54,18 @@ public static class Giocatore
         }
         */
     }
-    public static void CambiaPV(int quantita, bool danno)
+    public void CambiaPV(int quantita, bool danno)
     {
         PuntiVita += quantita;
         if (PuntiVita < 0)
         {
-            //morte
+            UI.GameOver(this);
         }else if(PuntiVita > PuntiVitaMax)
         {
             PuntiVita = PuntiVitaMax;
         }
     }
-    public static bool CambiaStamina(int quantita)
+    public bool CambiaStamina(int quantita)
     {
         if(-quantita > Stamina)
         {
@@ -71,7 +81,7 @@ public static class Giocatore
         return true;
     }
 
-    public static void AggiungiOggettoInventario(Oggetto o)
+    public void AggiungiOggettoInventario(Oggetto o)
     {
         if (o is Consumabili consAggiunto)
         {
@@ -93,7 +103,7 @@ public static class Giocatore
         Inventario.Push(o);
     }
 
-    public static Oggetto RimuoviOggettoInventario()
+    public Oggetto RimuoviOggettoInventario()
     {
         return Inventario.Pop();
     }
@@ -106,15 +116,23 @@ public class StatusEffect
     public event EventHandler? onTurnStart;
     //todo
 
-    public StatusEffect Bruciatura(string target)
+    public static StatusEffect Bruciatura(string target)
     {
-        StatusEffect burn = new(){target = target};
+        StatusEffect burn = new(){
+            target = target,
+            Name = "bruciatura"
+        };
         if(target == "giocatore")
         {
-            onTurnStart += (sender, e) => Giocatore.CambiaPV(-1, danno: true);
+            burn.onTurnStart += (sender, e) => GameManager.Giocatore.CambiaPV(-1, danno: true);
         }
         return burn;
     }
     // status effect bleed
+}
+
+public static class JsonSalvataggio
+{
+    
 }
 

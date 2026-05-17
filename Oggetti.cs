@@ -11,7 +11,7 @@ public class Oggetto
 
     public string Descrizione = "Oggetto base";
 
-    static int LastId = 0;
+    //static int LastId = 0;
 
 }
 

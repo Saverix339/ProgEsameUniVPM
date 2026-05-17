@@ -5,6 +5,10 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine("====INIZIO====");
+
+        // Chiedi il nome e crea il giocatore
+        string nome = UI.ChiediNome();
+        GameManager.Giocatore = new Giocatore(nome);
         
     }
 }

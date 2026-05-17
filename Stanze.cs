@@ -42,7 +42,7 @@ public class Stanza
         s.Frasi.Add("entrata", "Entrando nella stanza, vedi vari oggetti di valore attorno a te.");
         s.Azioni.Add("raccogli", () =>
         {
-            Giocatore.AggiungiOro(20);
+            GameManager.Giocatore.AggiungiOro(20);
         }
         );
 
@@ -58,11 +58,11 @@ public class Stanza
             Livello = 0,
         };
         s.Azioni.Add("migliora", () => {
-                if(Giocatore.Arma == null)
+                if(GameManager.Giocatore.Arma == null)
                 {
                     throw new NullReferenceException();
                 }
-                Armi.RendiRara(Giocatore.Arma);
+                Armi.RendiRara(GameManager.Giocatore.Arma);
             });
         return s;
     }
@@ -77,7 +77,7 @@ public class Stanza
         };
         s.Azioni.Add("raccogli", () =>
         {
-            Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base());
+            GameManager.Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base());
             //todo: logica di oggetto random.
         });
         return s;
@@ -93,7 +93,7 @@ public class Stanza
         };
         s.Azioni.Add("cura", () =>
         {
-            Giocatore.CambiaPV(10, false);
+            GameManager.Giocatore.CambiaPV(10, false);
         });
         return s;
     }
@@ -108,8 +108,8 @@ public class Stanza
         };
         s.Azioni.Add("entra", () =>
         {
-            Giocatore.CambiaPV(-2, danno: true);
-            Giocatore.RimuoviOggettoInventario();
+            GameManager.Giocatore.CambiaPV(-2, danno: true);
+            GameManager.Giocatore.RimuoviOggettoInventario();
         });
         return s;
     }

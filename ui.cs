@@ -9,7 +9,7 @@ public static class UI
         FineInit
     }
     private static StatoInit stato; */
-    public static void MostraInizioPersonaggio()
+    public static string ChiediNome()
     {
         Console.WriteLine("Inserisci il nome del tuo personaggio: \n");
         while(true){
@@ -20,7 +20,7 @@ public static class UI
             }
             else
             {
-                Giocatore.InserimentoNome(nome);
+                return nome;
             }
         }
     }
@@ -33,15 +33,15 @@ public static class UI
         Console.WriteLine($"Azioni (digita per eseguire): " + string.Join("\n", s.Azioni.Keys));
     }
 
-    public static string Input()
+    public static string Input(Giocatore g)
     {
-        Console.WriteLine($"\n{Giocatore.Nome}>");
+        Console.WriteLine($"\n{g.Nome}>");
         return Console.ReadLine()?.Trim().ToLower() ?? "";
     }
 
-    public static void GameOver()
+    public static void GameOver(Giocatore g)
     {
-        Console.WriteLine($"\n===FINE===\n{Giocatore.Nome} è morto/a, premi un tasto per chiudere il gioco.");
+        Console.WriteLine($"\n===FINE===\n{g.Nome} è morto/a, premi un tasto per chiudere il gioco.");
         Console.ReadKey();
         Environment.Exit(0);
     }
