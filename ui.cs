@@ -38,7 +38,6 @@ public static class UI
         Console.WriteLine($"\n{g.Nome}>");
         return Console.ReadLine()?.Trim().ToLower() ?? "";
     }
-
     public static void GameOver(Giocatore g)
     {
         Console.WriteLine($"\n===FINE===\n{g.Nome} è morto/a, premi un tasto per chiudere il gioco.");

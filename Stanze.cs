@@ -93,7 +93,7 @@ public class Stanza
         };
         s.Azioni.Add("cura", () =>
         {
-            GameManager.Giocatore.CambiaPV(10, false);
+            GameManager.Giocatore.Cura(10);
         });
         return s;
     }
@@ -108,7 +108,7 @@ public class Stanza
         };
         s.Azioni.Add("entra", () =>
         {
-            GameManager.Giocatore.CambiaPV(-2, danno: true);
+            GameManager.Giocatore.Danneggia(2);
             GameManager.Giocatore.RimuoviOggettoInventario();
         });
         return s;

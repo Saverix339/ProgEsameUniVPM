@@ -1,7 +1,16 @@
 using System;
 using System.Runtime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ProgEsameUniVPM;
-public class Giocatore
+
+public interface IDannegiabile
+{
+    void Danneggia(int d);
+    void Cura(int c);
+}
+
+public class Giocatore : IDannegiabile
 {
     public string Nome {get; private set;}  = "";
 
@@ -54,7 +63,23 @@ public class Giocatore
         }
         */
     }
-    public void CambiaPV(int quantita, bool danno)
+    public void Danneggia(int danno)
+    {
+        PuntiVita -= danno;
+        if (PuntiVita < 0)
+        {
+            UI.GameOver(this);
+        }
+    }
+    public void Cura(int cura)
+    {
+        PuntiVita += cura;
+        if(PuntiVita > PuntiVitaMax)
+        {
+            PuntiVita = PuntiVitaMax;
+        }
+    }
+    /*public void CambiaPV(int quantita, bool danno)
     {
         PuntiVita += quantita;
         if (PuntiVita < 0)
@@ -64,7 +89,7 @@ public class Giocatore
         {
             PuntiVita = PuntiVitaMax;
         }
-    }
+    }*/
     public bool CambiaStamina(int quantita)
     {
         if(-quantita > Stamina)
@@ -112,6 +137,7 @@ public class Giocatore
 public class StatusEffect
 {
     public string Name = "";
+    
     public required string target;
     public event EventHandler? onTurnStart;
     //todo
@@ -124,7 +150,7 @@ public class StatusEffect
         };
         if(target == "giocatore")
         {
-            burn.onTurnStart += (sender, e) => GameManager.Giocatore.CambiaPV(-1, danno: true);
+            burn.onTurnStart += (sender, e) => GameManager.Giocatore.Danneggia(1);
         }
         return burn;
     }
@@ -133,6 +159,19 @@ public class StatusEffect
 
 public static class JsonSalvataggio
 {
-    
+    const string percorso = "salvataggio.json";
+    private static readonly JsonSerializerOptions Opzioni = new() { WriteIndented = true };
+
+    public static void salva(Giocatore g){
+        File.WriteAllText(percorso, JsonSerializer.Serialize(g, Opzioni));
+    }
+    public static Giocatore? caricaSalvataggio(){
+        if(!File.Exists(percorso)){
+            UI.MostraErrore("File non trovato.");
+            throw new FileNotFoundException();
+        }else{
+            return JsonSerializer.Deserialize<Giocatore>(percorso);
+        }
+    }
 }
 

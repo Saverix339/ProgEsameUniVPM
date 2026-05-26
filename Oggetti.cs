@@ -217,3 +217,13 @@ public class OggettoTrovabile
     public required Oggetto oggetto;
     public bool IsTrovabile = true;
 }
+
+public abstract class Abiita
+{
+    public string Nome { get; set; } = "Abilità";
+    public string Descrizione { get; set; } = "";
+    public int CostoStamina { get; set; } = 0;
+    public string Target { get; set; }
+    public abstract void Esegui(object? owner, object? target);
+}
+
