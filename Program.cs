@@ -59,3 +59,47 @@ public class EsplorazioneStanza : IStato
         return;
     }
 }
+
+public class Combattimento : IStato
+{
+    public EsplorazioneStanza contestoCombattimento;
+    public Nemico Avversario {get; private set;} 
+    public enum Turno
+    {
+        Giocatore,
+        Avversario
+    }
+    Turno TurnoCorrente; 
+    public Combattimento(EsplorazioneStanza Contesto, Nemico nemico, bool TurnoNemico = false)
+    {
+        contestoCombattimento = Contesto;
+        Avversario = nemico;
+        if (TurnoNemico)
+        {
+            TurnoCorrente = Turno.Avversario;
+        }
+        else
+        {
+            TurnoCorrente = Turno.Giocatore;
+        }
+    }
+    public void entra()
+    {
+        UI.EntrataNemico(Avversario);
+        if(TurnoCorrente == Turno.Giocatore){
+            agisci(UI.Input(GameManager.Giocatore));
+        }
+        else
+        {
+            
+        }
+    }
+    public RisultatoAzione agisci(string input)
+    {
+        
+    }
+    public void AzioneNemico()
+    {
+        
+    }
+}

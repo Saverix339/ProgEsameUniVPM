@@ -8,6 +8,8 @@ public class Nemico : IDannegiabile
     public int Salute;
     public int SaluteMax;
 
+    public List<AbilitaNemico> Abilita = new();
+
     public List<StatusEffect> statusEffects = new();
     
     public void Danneggia(int danno)
@@ -26,12 +28,43 @@ public class Nemico : IDannegiabile
             Salute = SaluteMax;
         }
     }
+
+    public static Nemico Mimic()
+    {
+        return new()
+        {
+            Nome = "Mimic",
+            Descrizione = "",
+            Salute = 80,
+            SaluteMax = 80,
+            Abilita = new()
+            {
+                new AbilitaNemico
+                {
+                    Nome = "Morso",
+                    Danno = 10,
+                    PesoProbabilita = 1,
+                    AttaccaGiocatore = (gioc, nem, dan) =>
+                    {
+                        gioc.Danneggia(dan);
+                    }
+                },
+                new AbilitaNemico
+                {
+                    Nome = "Cura",
+                    PesoProbabilita = 1,
+                    CondizioneSpeciale = (gioc, nem) => nem.Salute < (nem.SaluteMax /2),
+                    EffettiSpeciali = (gioc, nem) => nem.Cura(20)
+                }
+            }
+        };
+    }
 }
 
 public class AbilitaNemico
 {
     public string Nome = "";
-    public int Danno;
+    public int Danno = 0;
     public int PesoProbabilita;
 
     public Func<Giocatore, Nemico, bool>? CondizioneSpeciale;
@@ -49,3 +82,4 @@ public class AbilitaNemico
         EffettiSpeciali?.Invoke(giocatore, nemico);
     }
 }
+

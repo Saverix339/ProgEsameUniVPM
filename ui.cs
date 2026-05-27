@@ -38,6 +38,19 @@ public static class UI
         Console.WriteLine($"\n{g.Nome}>");
         return Console.ReadLine()?.Trim().ToLower() ?? "";
     }
+
+    public static void EntrataNemico(Nemico n)
+    {
+        Console.WriteLine($"Davanti a te compare un {n.Nome}!");
+    }
+
+    public static void MostraTurnoGiocatore(Giocatore g, Combattimento combat)
+    {
+        Console.WriteLine($"TURNO DI {g.Nome.ToUpper()}\n");
+        Console.WriteLine("Azioni:");
+        
+    }
+
     public static void GameOver(Giocatore g)
     {
         Console.WriteLine($"\n===FINE===\n{g.Nome} è morto/a, premi un tasto per chiudere il gioco.");
