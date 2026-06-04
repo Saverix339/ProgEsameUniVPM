@@ -21,6 +21,7 @@ public class Nemico : IDannegiabile
         {
             //muore
         }
+        UI.MostraDanno(Nome, danno);
     }
     public void Cura(int cura)
     {

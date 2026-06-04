@@ -66,6 +66,7 @@ public class Giocatore : IDannegiabile
     public void Danneggia(int danno)
     {
         PuntiVita -= danno;
+        UI.MostraDanno(GameManager.Giocatore.Nome, danno);
         if (PuntiVita < 0)
         {
             UI.GameOver(this);
@@ -130,9 +131,44 @@ public class Giocatore : IDannegiabile
 
     public Oggetto? RimuoviOggettoInventario()
     {
-        
         if (Inventario.Count() != 0) return Inventario.Pop();
         return null;
+    }
+
+    public Dictionary<string, Action<EsplorazioneStanza, Nemico>> AzioniCombattimento = new()
+    {
+        {
+            "attacca", Attacca
+        },
+        { 
+            "abilità", UsaAbilitaArma
+        }
+    };
+    
+    public static void Attacca(EsplorazioneStanza contesto, Nemico nem)
+    {
+        int danno = GameManager.Giocatore.Arma?.potenza ?? 0;
+        nem.Danneggia(danno);
+    }
+
+    public static void UsaAbilitaArma(EsplorazioneStanza contesto, Nemico nem)
+    {
+        try{
+            Armi armaEquipaggiata = GameManager.Giocatore.Arma ?? throw new NullReferenceException();
+            if(armaEquipaggiata.AbiitaArma != null) armaEquipaggiata.AbiitaArma?.Esegui(GameManager.Giocatore, nem);
+        }
+        catch (NullReferenceException)
+        {
+            UI.MostraErrore("Nessuna arma.");
+        }
+    }
+    public static void UsaConsumabile(EsplorazioneStanza contesto, Nemico nem)
+    {
+        if(GameManager.Giocatore.Inventario.Peek() is Consumabili)
+        {
+            Consumabili consumabile = (Consumabili)GameManager.Giocatore.Inventario.Pop();
+            consumabile.Usa();
+        }
     }
 }
 

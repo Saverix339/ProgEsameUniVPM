@@ -22,6 +22,7 @@ public enum RisultatoAzione //elemento che viene comunicato al Game manager per 
     Cambia,
     ComandoSpeciale //Caso speciale se il player inserisce /help o simili
 }
+
 public interface IStato
 {
     void entra();
@@ -113,5 +114,10 @@ public class Combattimento : IStato
     public void AzioneNemico()
     {
         
+    }
+
+    public void esci()
+    {
+        GameManager.StatoGioco = contestoCombattimento;
     }
 }

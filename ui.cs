@@ -33,6 +33,10 @@ public static class UI
         Console.WriteLine($"Azioni (digita per eseguire): " + string.Join("\n", s.Azioni.Keys));
     }
 
+    public static void MostraDanno(string nome, int danno)
+    {
+        Console.WriteLine($"{nome} prende {danno} danni!");
+    }
     public static string Input(Giocatore g)
     {
         Console.WriteLine($"\n{g.Nome}>");
@@ -63,3 +67,8 @@ public static class UI
         Console.WriteLine("ERRORE: " + s);
     }
 }
+
+//  Aggiungere: Testo per uscita combattimento,
+//  Testo per mostrare le azioni,
+//  in Program.cs cambiare la logica Azioni Nemici,
+//  in Program.cs la logica per usare l'oggetto (e i corrispondenti testi stampati),

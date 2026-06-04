@@ -34,6 +34,8 @@ public class Armi : Oggetto
             default: return Nome;
         }
     }
+
+    public Abiita? AbiitaArma;
     
     public string PrendiDesc()
     {
@@ -144,6 +146,20 @@ public class Consumabili : Oggetto
 
     public int? prezzo;
 
+    public float recuperoPV = 0f;
+    public float recuperoStam = 0f;
+    public void Usa()
+    {
+        if(recuperoPV != 0)
+        {
+            GameManager.Giocatore.Cura((int)Math.Round(GameManager.Giocatore.PuntiVitaMax * recuperoPV));
+        }
+        if(recuperoStam != 0)
+        {
+            GameManager.Giocatore.CambiaStamina((int)Math.Round(GameManager.Giocatore.StaminaMax * recuperoStam));
+        }
+    }
+
 public static Consumabili Mela()
     {
         Consumabili c = new()
@@ -151,7 +167,8 @@ public static Consumabili Mela()
             Nome="Mela",
             Descrizione="frutto che ti da un quarto di stamina",
             peso=1,
-            prezzo=5
+            prezzo=5,
+            recuperoStam = 0.25f
         };
     return c;
     }
@@ -162,7 +179,8 @@ public static Consumabili Mela()
             Nome="Pozione_curativa_base",
             Descrizione="pozione che ti un quarto di vita",
             peso=1,
-            prezzo=5
+            prezzo=5,
+            recuperoPV = 0.25f
         };
     return c;
     }
@@ -173,7 +191,8 @@ public static Consumabili Mela()
             Nome="Pane",
             Descrizione="Pane molto utile per recuperare meta' stamina",
             peso=2,
-            prezzo=12
+            prezzo=12,
+            recuperoStam = 0.5f
         };
     return c;
     }
@@ -184,7 +203,8 @@ public static Consumabili Mela()
             Nome="Pozione_curativa_media",
             Descrizione="pozione per recuperare meta' vita",
             peso=2,
-            prezzo=12
+            prezzo=12,
+            recuperoPV = 0.5f
         };
     return c;
     }
@@ -195,7 +215,8 @@ public static Consumabili Mela()
             Nome="Torta",
             Descrizione="Torta molto buona che ti fa recupera tutta la stamina",
             peso=3,
-            prezzo=30
+            prezzo=30,
+            recuperoStam = 1.0f
         };
     return c;
     }
@@ -206,7 +227,8 @@ public static Consumabili Mela()
             Nome="Pozione_recupero_totale",
             Descrizione="Pozione salva vita che recupera tutta la vita",
             peso=3,
-            prezzo=30
+            prezzo=30,
+            recuperoPV =1.0f
         };
     return c;
     }
@@ -223,7 +245,7 @@ public abstract class Abiita
     public string Nome { get; set; } = "Abilità";
     public string Descrizione { get; set; } = "";
     public int CostoStamina { get; set; } = 0;
-    public string Target { get; set; }
+    public string? Target { get; set; }
     public abstract void Esegui(object? owner, object? target);
 }
 
