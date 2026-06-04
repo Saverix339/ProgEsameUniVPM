@@ -131,7 +131,7 @@ public class Stanza
             else
             {
                 var r = new Random();
-                if(r.Next(1) == 1)
+                if(r.Next(2) == 1)
                 {
                     //vai avanti
                 }

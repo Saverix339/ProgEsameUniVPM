@@ -8,9 +8,9 @@ public static class GameManager
     {
         
     }
-    public static void CambiaStato(IStato Iniziale, IStato Cambio)
+    public static void CambiaStato(IStato Cambio)
     {
-        Iniziale.esci();
+        StatoGioco?.esci();
         StatoGioco = Cambio;
         StatoGioco.entra();
     }

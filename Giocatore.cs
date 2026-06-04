@@ -128,9 +128,11 @@ public class Giocatore : IDannegiabile
         Inventario.Push(o);
     }
 
-    public Oggetto RimuoviOggettoInventario()
+    public Oggetto? RimuoviOggettoInventario()
     {
-        return Inventario.Pop();
+        
+        if (Inventario.Count() != 0) return Inventario.Pop();
+        return null;
     }
 }
 
@@ -170,7 +172,7 @@ public static class JsonSalvataggio
             UI.MostraErrore("File non trovato.");
             throw new FileNotFoundException();
         }else{
-            return JsonSerializer.Deserialize<Giocatore>(percorso);
+            return JsonSerializer.Deserialize<Giocatore>(File.ReadAllText(percorso));
         }
     }
 }

@@ -3,12 +3,14 @@ using ProgEsameUniVPM;
 
 public class Nemico : IDannegiabile
 {
-    public string Nome;
-    public string Descrizione;
-    public int Salute;
+    public required string Nome {get; set;}
+    public string Descrizione = "";
+    public int Salute {get; set;}
     public int SaluteMax;
 
     public List<AbilitaNemico> Abilita = new();
+    
+    private int totPeso;
 
     public List<StatusEffect> statusEffects = new();
     
@@ -31,7 +33,7 @@ public class Nemico : IDannegiabile
 
     public static Nemico Mimic()
     {
-        return new()
+        var s = new Nemico()
         {
             Nome = "Mimic",
             Descrizione = "",
@@ -58,6 +60,30 @@ public class Nemico : IDannegiabile
                 }
             }
         };
+        s.Pesa();
+        return s;
+    }
+
+    private void Pesa()
+    {
+        int tot = 0;
+        foreach(var a in Abilita)
+        {
+            tot += a.PesoProbabilita;
+        }
+        totPeso = tot;
+    }
+
+    public AbilitaNemico ScegliAbilita()
+    {
+        var rand = new Random();
+        int risultato = rand.Next(totPeso +1);
+        foreach(var a in Abilita)
+        {
+            risultato -= a.PesoProbabilita;
+            if(risultato<=0) return a;
+        }
+        throw new Exception();
     }
 }
 

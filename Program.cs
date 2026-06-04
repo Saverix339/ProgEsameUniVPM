@@ -83,20 +83,32 @@ public class Combattimento : IStato
             TurnoCorrente = Turno.Giocatore;
         }
     }
-    public void entra()
+    public void entra() 
     {
         UI.EntrataNemico(Avversario);
-        if(TurnoCorrente == Turno.Giocatore){
-            agisci(UI.Input(GameManager.Giocatore));
-        }
-        else
-        {
-            
-        }
+        agisci("");
     }
     public RisultatoAzione agisci(string input)
     {
-        
+        if(TurnoCorrente == Turno.Avversario)
+        {
+            try{
+                var scelta = Avversario.ScegliAbilita();
+                scelta.Esegui(Avversario, GameManager.Giocatore);
+                TurnoCorrente = Turno.Giocatore;
+                agisci(UI.Input(GameManager.Giocatore));
+                return RisultatoAzione.Continua;
+            }
+            catch (Exception)
+            {
+                return RisultatoAzione.Errore;
+            }
+        }
+        else
+        {
+            //TODO Codice per input giocatore
+            return RisultatoAzione.Errore;
+        }
     }
     public void AzioneNemico()
     {
