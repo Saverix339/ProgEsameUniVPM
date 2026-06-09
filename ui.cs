@@ -24,6 +24,28 @@ public static class UI
             }
         }
     }
+    public static Armi ScegliArma()
+{
+    Console.WriteLine("Scegli un'arma iniziale:\n");
+    Console.WriteLine("1. Spada  2. Scudo  3. Coltello");
+    while (true)
+    {
+        string arma = Console.ReadLine() ?? "";
+            switch (arma.ToLower())
+            {
+                case "1" or "spada":
+                    return Armi.Spada();
+                case "2" or "scudo":
+                    return Armi.Scudo();
+                case "3" or "coltello":
+                    return Armi.coltello();
+                default:
+                    Console.WriteLine("Input invalido");
+                    break;
+            }
+    }
+
+}
 
     public static void MostraStanza(Stanza s)
     {

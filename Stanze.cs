@@ -1,10 +1,13 @@
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices.Marshalling;
 using ProgEsameUniVPM;
 
 public class Stanza
 {
     public required string Nome, Descrizione;
+
+    public required int[] Coordinate = [0,0];
 
     public List<OggettoTrovabile> OggettiStanza = new();
 
@@ -24,13 +27,27 @@ public class Stanza
         Tesori.Add(Armi.coltello());
     }
     */
-    public static Stanza StanzaDelTesoro()
+    
+    public static Stanza StanzaIniziale()
+    {
+        Stanza s = new Stanza()
+        {
+            Nome= "",
+            Descrizione= "",
+            Livello = 0,
+            Coordinate = [0,0]
+        };
+        return s;
+    }
+
+    public static Stanza StanzaDelTesoro(int[] posizione)
     {
         Stanza s = new Stanza()
         {
             Nome = "Stanza del Tesoro.",
             Descrizione = "Tesorooooo",
             Livello = 0,
+            Coordinate = posizione
         };
         /*
         var r = new Random();
@@ -49,13 +66,14 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Armeria()
+    public static Stanza Armeria(int[] posizione)
     {
         Stanza s = new Stanza()
         {
             Nome = "Armeria",
             Descrizione = "Armeria dove puoi migliorare la tua arma.",
             Livello = 0,
+            Coordinate = posizione
         };
         s.Azioni.Add("migliora", () => {
                 if(GameManager.Giocatore.Arma == null)
@@ -67,13 +85,14 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Cantina()
+    public static Stanza Cantina(int[] posizione)
     {
         Stanza s = new Stanza()
         {
             Nome = "Cantina",
             Descrizione = "rifornimento cibo e pozioni",
-            Livello = 0
+            Livello = 0,
+            Coordinate = posizione
         };
         s.Azioni.Add("raccogli", () =>
         {
@@ -83,13 +102,14 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Cura()
+    public static Stanza Cura(int[] posizione)
     {
         Stanza s = new Stanza()
         {
             Nome = "Stanza Curativa",
             Descrizione = "cura giocatore",
-            Livello = 0
+            Livello = 0,
+            Coordinate = posizione
         };
         s.Azioni.Add("cura", () =>
         {
@@ -98,13 +118,14 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Inceneritore()
+    public static Stanza Inceneritore(int[] posizione)
     {
         Stanza s = new Stanza()
         {
             Nome = "Inceneritore",
             Descrizione = "fuoco",
-            Livello = 0
+            Livello = 0,
+            Coordinate = posizione
         };
         s.Azioni.Add("entra", () =>
         {
@@ -114,13 +135,14 @@ public class Stanza
         return s;
     }
 
-    public static Stanza BucoTrappola()
+    public static Stanza BucoTrappola(int[] posizione)
     {
         Stanza s = new Stanza()
         {
             Nome = "Stanza Teletrasporto",
             Descrizione = "",
-            Livello = 0
+            Livello = 0,
+            Coordinate = posizione
         };
         s.Azioni.Add("entra", () =>
         {

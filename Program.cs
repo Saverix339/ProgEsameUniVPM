@@ -1,5 +1,7 @@
 ﻿namespace ProgEsameUniVPM;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
+
 class Program
 {
     static void Main(string[] args)
@@ -28,6 +30,26 @@ public interface IStato
     void entra();
     RisultatoAzione agisci(string input);
     void esci();
+}
+
+public class CreazionePersonaggio : IStato
+{
+    public void entra()
+    {
+        string nome = UI.ChiediNome();
+        GameManager.Giocatore =  new Giocatore(nome);
+
+        Armi armaIniziale = UI.ScegliArma();
+        GameManager.Giocatore.EquipaggiaArma(armaIniziale);
+    }
+    public RisultatoAzione agisci(string input)
+    {
+        return RisultatoAzione.Continua;
+    }
+    public void esci()
+    {
+        return;
+    }
 }
 
 public class EsplorazioneStanza : IStato
