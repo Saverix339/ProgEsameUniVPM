@@ -29,31 +29,38 @@ public class Giocatore : IDannegiabile
 
     public void EquipaggiaArma(Armi arma) => Arma = arma;
 
-    public HashSet<string> Chiavi { get; } = new();
+    [JsonInclude]
+    private HashSet<string> _chiavi = new();
 
-    public bool HaChiave(string id) => Chiavi.Contains(id);
-    public void DaiChiave(string id) => Chiavi.Add(id);
+    public HashSet<string> Chiavi => _chiavi;
+
+    public bool HaChiave(string id) => _chiavi.Contains(id);
+    public void DaiChiave(string id) => _chiavi.Add(id);
 
     public void Raccogli(Oggetto o)
     {
         if (o is Armi arma)
         {
             EquipaggiaArma(arma);
-            Console.WriteLine($"Hai equipaggiato: {arma.Nome}.");
+            UI.MostraMessaggio($"Hai equipaggiato: {arma.Nome}.");
             return;
         }
-        if (o.EChiave)
+        if (o is OggettoChiave chiave)
         {
-            DaiChiave(o.ChiaveId);
-            Console.WriteLine($"Hai raccolto: {o.Nome} (apre serrature {o.ChiaveId}).");
+            DaiChiave(chiave.Serratura);
+            UI.MostraMessaggio($"Hai raccolto: {chiave.Nome} (apre serrature {chiave.Serratura}).");
             return;
         }
         AggiungiOggettoInventario(o);
-        Console.WriteLine($"Hai raccolto: {o.Nome}.");
+        UI.MostraMessaggio($"Hai raccolto: {o.Nome}.");
     }
 
-    public List<StatusEffect> StatusEffects { get; } = new();
+    [JsonInclude]
+    private List<StatusEffect> _statusEffects = new();
 
+    public List<StatusEffect> StatusEffects => _statusEffects;
+
+    [JsonConstructor]
     public Giocatore(string nome, int pvMax = 20, int staminaMax = 10)
     {
         Nome = nome;
@@ -211,6 +218,7 @@ public class StatusEffect
         };
         if(target == "giocatore")
         {
+            GameManager.Giocatore.StatusEffects.Add(burn);
             burn.onTurnStart += (sender, e) => GameManager.Giocatore.Danneggia(1);
         }
         return burn;
@@ -227,52 +235,60 @@ public static class JsonSalvataggio
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public class StatoPortaDto
+    public class StatoPorteFlag
     {
         public string Stanza { get; set; } = "";
         public Direzione Direzione { get; set; }
         public StatoPorta Stato { get; set; }
     }
 
-    public class MondoDto
+    public class StatoMondoFlags
     {
         public string StanzaCorrenteId { get; set; } = "";
-        public List<StatoPortaDto> StatoPorte { get; set; } = new();
+        public List<StatoPorteFlag> StatoPorte { get; set; } = new();
+        public List<string> OggettiRimossi { get; set; } = new();
     }
 
     public class Salvataggio
     {
         public Giocatore Giocatore { get; set; } = null!;
-        public MondoDto Mondo { get; set; } = new();
+        public StatoMondoFlags Mondo { get; set; } = new();
     }
 
-    public static MondoDto CatturaMondo()
+    public static StatoMondoFlags CatturaMondo()
     {
-        var dto = new MondoDto
+        var dto = new StatoMondoFlags
         {
             StanzaCorrenteId = GameManager.StanzaCorrente.Id
         };
         foreach (var s in Mappa.Stanze.Values)
         {
+            // Salva lo stato delle porte
             foreach (var (dir, porta) in s.Porte)
             {
-                // Salviamo solo le porte non nello stato di default (Aperta)
-                // o tutte se vuoi precisione assoluta. Salviamole tutte per semplicità.
-                dto.StatoPorte.Add(new StatoPortaDto
+                dto.StatoPorte.Add(new StatoPorteFlag
                 {
                     Stanza = s.Id,
                     Direzione = dir,
                     Stato = porta.Stato
                 });
             }
+
+            // Salva solo gli oggetti attualmente a terra nelle stanze
+            // (gli oggetti già raccolti non saranno più in OggettiStanza)
+            foreach (var oggst in s.OggettiStanza)
+            {
+                dto.OggettiRimossi.Add(oggst.oggetto.Id.ToString());
+            }
         }
         return dto;
     }
 
-    public static void ApplicaMondo(MondoDto dto)
+    public static void ApplicaMondo(StatoMondoFlags dto)
     {
-        // Re-inizializza la mappa (ripristina stato default)
+        // Re-inizializza la mappa (stato default)
         Mappa.Inizializza();
+
         // Applica stato delle porte
         foreach (var p in dto.StatoPorte)
         {
@@ -281,6 +297,15 @@ public static class JsonSalvataggio
             if (stanza.Porte.TryGetValue(p.Direzione, out var porta))
                 porta.Stato = p.Stato;
         }
+
+        // Rimuovi dalle stanze gli oggetti che non sono nello snapshot salvato
+        // (cioè quelli che il giocatore aveva raccolto prima di salvare)
+        var presentiAlSalvataggio = new HashSet<string>(dto.OggettiRimossi);
+        foreach (var s in Mappa.Stanze.Values)
+        {
+            s.OggettiStanza.RemoveAll(ot => !presentiAlSalvataggio.Contains(ot.oggetto.Id.ToString()));
+        }
+
         // Riposiziona il giocatore
         var corrente = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == dto.StanzaCorrenteId);
         if (corrente is not null)

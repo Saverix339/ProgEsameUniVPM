@@ -1,12 +1,16 @@
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.Intrinsics.Arm;
-
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 namespace ProgEsameUniVPM;
 
 //Classe genitore di tutte le sottoclassi inerenti agli ogetti
+[JsonDerivedType(typeof(Armi), "arma")]
+[JsonDerivedType(typeof(Consumabili), "consumabile")]
+[JsonDerivedType(typeof(OggettoChiave), "chiave")]
 public class Oggetto
 {
-    public int Id /*{get; private set;}*/ = 0;
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public int IdInt /*{get; private set;}*/ = 0;
     public string Nome /*{get; private set;}*/ = "Oggetto";
 
     public string Descrizione = "Oggetto base";
@@ -15,14 +19,20 @@ public class Oggetto
     public string ChiaveId { get; set; } = "";
 
     public bool EChiave => ChiaveId.Length > 0;
+}
 
-    public static Oggetto Chiave(string chiaveId, string nome)
+public class OggettoChiave : Oggetto
+{
+    public string Serratura { get; set; } = "";
+
+    public static OggettoChiave Crea(string serratura, string nome)
     {
-        return new Oggetto
+        return new OggettoChiave
         {
             Nome = nome,
-            Descrizione = $"Una chiave ({chiaveId}).",
-            ChiaveId = chiaveId
+            Descrizione = $"Una chiave per la serratura ({serratura}).",
+            Serratura = serratura,
+            ChiaveId = serratura
         };
     }
 }

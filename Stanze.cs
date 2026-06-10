@@ -60,6 +60,15 @@ public class Stanza
 
     public bool PrimaVolta { get; set; } = true;
 
+    public bool RaccogliOggetto(Guid id, out Oggetto? oggetto)
+    {
+        var trovato = OggettiStanza.FirstOrDefault(o => o.oggetto.Id == id);
+        if (trovato is null) { oggetto = null; return false; }
+        oggetto = trovato.oggetto;
+        OggettiStanza.Remove(trovato);
+        return true;
+    }
+
     /*
     private List<Oggetto> Tesori;
 
@@ -157,7 +166,7 @@ public class Stanza
         // Pre-popoliamo la cantina con la chiave
         s.OggettiStanza.Add(new OggettoTrovabile
         {
-            oggetto = Oggetto.Chiave("chiave_oro", "Chiave d'Oro")
+            oggetto = OggettoChiave.Crea("chiave_oro", "Chiave d'Oro")
         });
         return s;
     }
