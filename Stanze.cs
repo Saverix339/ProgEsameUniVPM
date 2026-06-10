@@ -222,7 +222,8 @@ public static class Mappa
         // Ingresso (0,0) <-> Cantina (-1,0)  : libera
         // Ingresso (0,0) <-> Corridoio (0,1)  : libera
         // Corridoio (0,1) <-> Armeria (1,1)   : libera
-        // Corridoio (0,1) <-> Tesoro (0,2)    : BLOCCATA, richiede "chiave_oro"
+        // Corridoio (0,1) <-> Tesoro (0,2)    : bloccata, richiede "chiave_oro"
+        //(mappa da esempio ovviamente)
 
         Collega(ingresso, corridoio, Direzione.Nord, null);
         Collega(corridoio, ingresso, Direzione.Sud, null);
