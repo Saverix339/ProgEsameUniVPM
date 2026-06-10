@@ -29,6 +29,29 @@ public class Giocatore : IDannegiabile
 
     public void EquipaggiaArma(Armi arma) => Arma = arma;
 
+    public HashSet<string> Chiavi { get; } = new();
+
+    public bool HaChiave(string id) => Chiavi.Contains(id);
+    public void DaiChiave(string id) => Chiavi.Add(id);
+
+    public void Raccogli(Oggetto o)
+    {
+        if (o is Armi arma)
+        {
+            EquipaggiaArma(arma);
+            Console.WriteLine($"Hai equipaggiato: {arma.Nome}.");
+            return;
+        }
+        if (o.EChiave)
+        {
+            DaiChiave(o.ChiaveId);
+            Console.WriteLine($"Hai raccolto: {o.Nome} (apre serrature {o.ChiaveId}).");
+            return;
+        }
+        AggiungiOggettoInventario(o);
+        Console.WriteLine($"Hai raccolto: {o.Nome}.");
+    }
+
     public List<StatusEffect> StatusEffects { get; } = new();
 
     public Giocatore(string nome, int pvMax = 20, int staminaMax = 10)
@@ -198,18 +221,89 @@ public class StatusEffect
 public static class JsonSalvataggio
 {
     const string percorso = "salvataggio.json";
-    private static readonly JsonSerializerOptions Opzioni = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions Opzioni = new()
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
-    public static void salva(Giocatore g){
-        File.WriteAllText(percorso, JsonSerializer.Serialize(g, Opzioni));
+    public class StatoPortaDto
+    {
+        public string Stanza { get; set; } = "";
+        public Direzione Direzione { get; set; }
+        public StatoPorta Stato { get; set; }
     }
-    public static Giocatore? caricaSalvataggio(){
-        if(!File.Exists(percorso)){
-            UI.MostraErrore("File non trovato.");
-            throw new FileNotFoundException();
-        }else{
-            return JsonSerializer.Deserialize<Giocatore>(File.ReadAllText(percorso));
+
+    public class MondoDto
+    {
+        public string StanzaCorrenteId { get; set; } = "";
+        public List<StatoPortaDto> StatoPorte { get; set; } = new();
+    }
+
+    public class Salvataggio
+    {
+        public Giocatore Giocatore { get; set; } = null!;
+        public MondoDto Mondo { get; set; } = new();
+    }
+
+    public static MondoDto CatturaMondo()
+    {
+        var dto = new MondoDto
+        {
+            StanzaCorrenteId = GameManager.StanzaCorrente.Id
+        };
+        foreach (var s in Mappa.Stanze.Values)
+        {
+            foreach (var (dir, porta) in s.Porte)
+            {
+                // Salviamo solo le porte non nello stato di default (Aperta)
+                // o tutte se vuoi precisione assoluta. Salviamole tutte per semplicità.
+                dto.StatoPorte.Add(new StatoPortaDto
+                {
+                    Stanza = s.Id,
+                    Direzione = dir,
+                    Stato = porta.Stato
+                });
+            }
         }
+        return dto;
+    }
+
+    public static void ApplicaMondo(MondoDto dto)
+    {
+        // Re-inizializza la mappa (ripristina stato default)
+        Mappa.Inizializza();
+        // Applica stato delle porte
+        foreach (var p in dto.StatoPorte)
+        {
+            var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == p.Stanza);
+            if (stanza is null) continue;
+            if (stanza.Porte.TryGetValue(p.Direzione, out var porta))
+                porta.Stato = p.Stato;
+        }
+        // Riposiziona il giocatore
+        var corrente = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == dto.StanzaCorrenteId);
+        if (corrente is not null)
+        {
+            GameManager.StanzaCorrente = corrente;
+            GameManager.CambiaStato(new EsplorazioneStanza(corrente));
+        }
+    }
+
+    public static void salva(Giocatore g)
+    {
+        var data = new Salvataggio { Giocatore = g, Mondo = CatturaMondo() };
+        File.WriteAllText(percorso, JsonSerializer.Serialize(data, Opzioni));
+    }
+
+    public static Salvataggio? caricaSalvataggio()
+    {
+        if (!File.Exists(percorso))
+        {
+            UI.MostraErrore("File non trovato.");
+            return null;
+        }
+        return JsonSerializer.Deserialize<Salvataggio>(File.ReadAllText(percorso), Opzioni);
     }
 }
 

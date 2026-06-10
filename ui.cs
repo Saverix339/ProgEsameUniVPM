@@ -88,6 +88,11 @@ public static class UI
     {
         Console.WriteLine("ERRORE: " + s);
     }
+
+    public static void MostraMessaggio(string s)
+    {
+        Console.WriteLine(s);
+    }
 }
 
 //  Aggiungere: Testo per uscita combattimento,

@@ -11,8 +11,20 @@ public class Oggetto
 
     public string Descrizione = "Oggetto base";
 
-    //static int LastId = 0;
+    // Se non vuoto, l'oggetto è una chiave che apre Porte con questo id
+    public string ChiaveId { get; set; } = "";
 
+    public bool EChiave => ChiaveId.Length > 0;
+
+    public static Oggetto Chiave(string chiaveId, string nome)
+    {
+        return new Oggetto
+        {
+            Nome = nome,
+            Descrizione = $"Una chiave ({chiaveId}).",
+            ChiaveId = chiaveId
+        };
+    }
 }
 
 // per fare arma personaggio mettere prima plubic class arma: oggetto,{} 

@@ -11,7 +11,32 @@ class Program
         // Chiedi il nome e crea il giocatore
         string nome = UI.ChiediNome();
         GameManager.Giocatore = new Giocatore(nome);
-        
+
+        // Inizializza la mappa e parti dall'ingresso
+        Mappa.Inizializza();
+        GameManager.StanzaCorrente = Mappa.Verso(new Coord(0, 0))!;
+        GameManager.CambiaStato(new EsplorazioneStanza(GameManager.StanzaCorrente));
+
+        // Game loop
+        while (true)
+        {
+            if (GameManager.StatoGioco is null) break;
+            string input = UI.Input(GameManager.Giocatore);
+            if (string.IsNullOrWhiteSpace(input)) continue;
+            if (input is "esci" or "exit" or "quit") break;
+            if (input == "salva") { JsonSalvataggio.salva(GameManager.Giocatore); continue; }
+            if (input == "carica")
+            {
+                var salv = JsonSalvataggio.caricaSalvataggio();
+                if (salv is not null)
+                {
+                    GameManager.Giocatore = salv.Giocatore;
+                    JsonSalvataggio.ApplicaMondo(salv.Mondo);
+                }
+                continue;
+            }
+            GameManager.StatoGioco.agisci(input);
+        }
     }
 }
 
