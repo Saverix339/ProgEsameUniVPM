@@ -1,7 +1,28 @@
 using System;
 namespace ProgEsameUniVPM;
+
+//Classe statica per gestire tutto quello che viene stampato a schermo. 
+//Gestisce inoltre la formattazione dell'input in '.Trim().ToLower()'
 public static class UI
 {
+    public static bool ChiediCaricamento()
+    {
+        Console.WriteLine("È stato trovato un salvataggio precedente. Desideri caricarlo? (s/n)");
+        while (true)
+        {
+            string input = Console.ReadLine()?.Trim().ToLower() ?? "";
+            if (input is "s" or "si" or "sì" or "yes" or "y")
+            {
+                return true;
+            }
+            if (input is "n" or "no")
+            {
+                return false;
+            }
+            Console.WriteLine("Input non valido. Inserisci 's' per sì o 'n' per no.");
+        }
+    }
+
     /* private enum StatoInit {
         ScriviNome,
         PrendiArma,
@@ -88,7 +109,8 @@ public static class UI
     {
         Console.WriteLine("ERRORE: " + s);
     }
-
+    //Semplicemente mostra un messaggio 's'.
+    //Per rendere il codice ordinato, dovrebbe essere usato poco (invece, bisognerebbe creare metodi apposta per i casi a cui servono)
     public static void MostraMessaggio(string s)
     {
         Console.WriteLine(s);
