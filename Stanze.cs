@@ -10,6 +10,7 @@ public readonly record struct Coord(int X, int Y)
 
 public enum Direzione { Nord, Sud, Est, Ovest }
 
+
 public static class ManagerDirezioni
 {
     private static readonly Dictionary<Direzione, Coord> DeltaPosizione = new()
@@ -59,6 +60,10 @@ public class Stanza
     public Dictionary<Direzione, Porta> Porte { get; } = new();
 
     public bool PrimaVolta { get; set; } = true;
+
+    public Nemico? NemicoStanza;
+
+    public bool NemicoSconfitto = false;
 
     public bool RaccogliOggetto(Guid id, out Oggetto? oggetto)
     {
@@ -163,7 +168,6 @@ public class Stanza
             GameManager.Giocatore.Raccogli(trovata.oggetto);
             s.OggettiStanza.Remove(trovata);
         });
-        // Pre-popoliamo la cantina con la chiave
         s.OggettiStanza.Add(new OggettoTrovabile
         {
             oggetto = OggettoChiave.Crea("chiave_oro", "Chiave d'Oro")
@@ -180,6 +184,19 @@ public class Stanza
             Descrizione = "Un corridoio umido. A nord sembra esserci una porta pesante.",
             Livello = 0,
             Coordinate = posizione
+        };
+        return s;
+    }
+    public static Stanza StanzaCombattimento(Coord posizione, Nemico nemico, int duplicato = 0)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = $"combattimento_{nemico}{((duplicato==0)?"":duplicato)}",
+            Nome = $"Stanza con {nemico}",
+            Descrizione = "",
+            Livello = 0,
+            Coordinate = posizione,
+            NemicoStanza = nemico
         };
         return s;
     }

@@ -244,9 +244,11 @@ public static class JsonSalvataggio
 
     public class StatoMondoFlags
     {
-        public string StanzaCorrenteId { get; set; } = "";
-        public List<StatoPorteFlag> StatoPorte { get; set; } = new();
-        public List<string> OggettiRimossi { get; set; } = new();
+        public string StanzaCorrenteId{ get; set; } = "";
+        public List<StatoPorteFlag> StatoPorte{ get; set; } = new();
+        public List<string> OggettiRimossi{ get; set; } = new();
+        public List<string> OggettiMercante {get; set;} = new();
+        public List<string> NemiciRimossi {get;set;} = new();
     }
 
     public class Salvataggio

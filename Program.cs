@@ -160,6 +160,7 @@ public class Combattimento : IStato
 {
     public EsplorazioneStanza contestoCombattimento;
     public Nemico Avversario {get; private set;} 
+    public bool FlagNemicoSconfitto = false;
     public enum Turno
     {
         Giocatore,
@@ -186,6 +187,10 @@ public class Combattimento : IStato
     }
     public RisultatoAzione agisci(string input)
     {
+        if(FlagNemicoSconfitto == true)
+        {
+            GameManager.CambiaStato(contestoCombattimento);
+        }
         if(TurnoCorrente == Turno.Avversario)
         {
             try{
@@ -213,6 +218,6 @@ public class Combattimento : IStato
 
     public void esci()
     {
-        GameManager.StatoGioco = contestoCombattimento;
+        if(FlagNemicoSconfitto == true) contestoCombattimento._stanza.NemicoSconfitto = true;
     }
 }

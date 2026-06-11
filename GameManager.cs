@@ -48,6 +48,11 @@ public static class GameManager
         }
 
         StanzaCorrente = target;
-        CambiaStato(new EsplorazioneStanza(target));
+        var esplorazione = new EsplorazioneStanza(StanzaCorrente);
+        if(StanzaCorrente.NemicoStanza is not null && StanzaCorrente.NemicoSconfitto!)
+        {
+            CambiaStato(new Combattimento(esplorazione, StanzaCorrente.NemicoStanza));
+        }
+        CambiaStato(esplorazione);
     }
 }
