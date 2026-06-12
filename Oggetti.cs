@@ -10,7 +10,6 @@ namespace ProgEsameUniVPM;
 public class Oggetto
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public int IdInt /*{get; private set;}*/ = 0;
     public string Nome /*{get; private set;}*/ = "Oggetto";
 
     public string Descrizione = "Oggetto base";
@@ -18,7 +17,11 @@ public class Oggetto
     // Se non vuoto, l'oggetto è una chiave che apre Porte con questo id
     public string ChiaveId { get; set; } = "";
 
-    public bool EChiave => ChiaveId.Length > 0;
+    // ID stabile per il salvataggio: assegnato a oggetti statici della mappa.
+    // Viene usato al posto di Guid nei salvataggi perché Id cambia ad ogni Inizializza().
+    public string IdSalvataggio { get; set; } = "";
+
+    public bool isChiave => ChiaveId.Length > 0;
 }
 
 public class OggettoChiave : Oggetto

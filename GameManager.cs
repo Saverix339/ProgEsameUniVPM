@@ -49,7 +49,7 @@ public static class GameManager
 
         StanzaCorrente = target;
         var esplorazione = new EsplorazioneStanza(StanzaCorrente);
-        if(StanzaCorrente.NemicoStanza is not null && StanzaCorrente.NemicoSconfitto!)
+        if(StanzaCorrente.NemicoStanza is not null && !StanzaCorrente.NemicoSconfitto)
         {
             CambiaStato(new Combattimento(esplorazione, StanzaCorrente.NemicoStanza));
         }

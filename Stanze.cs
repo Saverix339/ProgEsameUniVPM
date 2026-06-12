@@ -43,6 +43,29 @@ public class Porta
     public bool RichiedeChiave => ChiaveRichiesta is not null;
 }
 
+public class Azione
+{
+    public required string Id { get; init; }
+    public required string Nome { get; init; }
+    public required string Descrizione { get; init; }
+    public string Categoria { get; init; } = "Altro";
+    public Action Esegui { get; init; } = () => { };
+
+    //public static Azione Crea(string id, string nome, string descrizione, string categoria, Action callback)
+    public static Azione Crea(string id, string nome, string descrizione, Action callback)
+    {
+        return new Azione
+        {
+            Id = id,
+            Nome = nome,
+            Descrizione = descrizione,
+            //Categoria = categoria,
+            Categoria = "Altro",
+            Esegui = callback
+        };
+    }
+}
+
 public class Stanza
 {
     public required string Id { get; init; }
@@ -55,7 +78,7 @@ public class Stanza
 
     public required int Livello { get; init; }
 
-    public Dictionary<string, Action> Azioni { get; } = new();
+    public Dictionary<string, Azione> Azioni { get; } = new();
 
     public Dictionary<Direzione, Porta> Porte { get; } = new();
 
@@ -64,6 +87,16 @@ public class Stanza
     public Nemico? NemicoStanza;
 
     public bool NemicoSconfitto = false;
+
+    public void AggiungiAzione(string id, string nome, string descrizione, Action callback)
+    {
+        Azioni[id] = Azione.Crea(id, nome, descrizione, callback);
+    }
+
+    public bool RimuoviAzione(string id)
+    {
+        return Azioni.Remove(id);
+    }
 
     public bool RaccogliOggetto(Guid id, out Oggetto? oggetto)
     {
@@ -95,11 +128,12 @@ public class Stanza
             Livello = 0,
             Coordinate = posizione
         };
-        s.Azioni.Add("raccogli torcia", () =>
-        {
-            // Esempio: raccoglie una torcia (non chiave)
-            // (vuoto: serve solo a far comparire un'azione testuale)
-        });
+        s.AggiungiAzione(
+            "raccogli torcia",
+            "Raccogli Torcia",
+            "Raccogli una torcia appoggiata vicino all'ingresso.",
+            () => { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); }
+        );
         return s;
     }
 
@@ -113,10 +147,12 @@ public class Stanza
             Livello = 0,
             Coordinate = posizione
         };
-        s.Azioni.Add("raccogli", () =>
-        {
-            GameManager.Giocatore.AggiungiOro(20);
-        });
+        s.AggiungiAzione(
+            "raccogli",
+            "Raccogli Tesoro",
+            "Raccogli tutto l'oro e le gemme presenti nella stanza.",
+            () => { GameManager.Giocatore.AggiungiOro(20); UI.MostraMessaggio("Hai raccolto 20 oro!"); }
+        );
         return s;
     }
 
@@ -130,15 +166,21 @@ public class Stanza
             Livello = 0,
             Coordinate = posizione
         };
-        s.Azioni.Add("migliora", () =>
-        {
-            if (GameManager.Giocatore.Arma == null)
+        s.AggiungiAzione(
+            "migliora",
+            "Migliora Arma",
+            "Potenzia l'arma equipaggiata a un livello superiore.",
+            () =>
             {
-                UI.MostraErrore("Non hai un'arma equipaggiata.");
-                return;
+                if (GameManager.Giocatore.Arma == null)
+                {
+                    UI.MostraErrore("Non hai un'arma equipaggiata.");
+                    return;
+                }
+                Armi.RendiRara(GameManager.Giocatore.Arma);
+                UI.MostraMessaggio($"La tua arma è ora più potente!");
             }
-            Armi.RendiRara(GameManager.Giocatore.Arma);
-        });
+        );
         return s;
     }
 
@@ -152,25 +194,35 @@ public class Stanza
             Livello = 0,
             Coordinate = posizione
         };
-        s.Azioni.Add("raccogli pozione", () =>
-        {
-            GameManager.Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base());
-        });
-        s.Azioni.Add("raccogli chiave", () =>
-        {
-            // Raccoglie la chiave e la rimuove dalla stanza
-            var trovata = s.OggettiStanza.FirstOrDefault(o => o.oggetto.ChiaveId == "chiave_oro");
-            if (trovata is null)
+        s.AggiungiAzione(
+            "raccogli pozione",
+            "Raccogli Pozione",
+            "Raccogli una pozione curativa dalla mensola.",
+            () => { GameManager.Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base()); UI.MostraMessaggio("Hai raccolto una pozione curativa!"); }
+        );
+        s.AggiungiAzione(
+            "raccogli chiave",
+            "Raccogli Chiave",
+            "Raccogli la chiave dorata nell'angolo.",
+            () =>
             {
-                UI.MostraErrore("Non c'è nessuna chiave qui.");
-                return;
+                var trovata = s.OggettiStanza.FirstOrDefault(o => o.oggetto.ChiaveId == "chiave_oro");
+                if (trovata is null) { UI.MostraErrore("Non c'è nessuna chiave qui."); return; }
+                GameManager.Giocatore.Raccogli(trovata.oggetto);
+                s.OggettiStanza.Remove(trovata);
+                s.RimuoviAzione("raccogli chiave");
             }
-            GameManager.Giocatore.Raccogli(trovata.oggetto);
-            s.OggettiStanza.Remove(trovata);
-        });
+        );
         s.OggettiStanza.Add(new OggettoTrovabile
         {
-            oggetto = OggettoChiave.Crea("chiave_oro", "Chiave d'Oro")
+            oggetto = new OggettoChiave
+            {
+                Nome = "Chiave d'Oro",
+                Descrizione = "Una chiave per la serratura (chiave_oro).",
+                Serratura = "chiave_oro",
+                ChiaveId = "chiave_oro",
+                IdSalvataggio = "chiave_oro_cantina"
+            }
         });
         return s;
     }
@@ -291,10 +343,16 @@ public static class Mappa
     {
         foreach (Direzione dir in Enum.GetValues<Direzione>())
         {
-            //var dirLocal = dir; 
-            if(SiCollega(s, dir)){
-                var azione = $"vai {dir.Testo()}";
-                s.Azioni[azione] = () => GameManager.Sposta(dir);
+            if (SiCollega(s, dir))
+            {
+                string idAzione = $"vai {dir.Testo()}";
+                string nomeDir = dir.ToString();
+                s.AggiungiAzione(
+                    idAzione,
+                    $"Vai {nomeDir}",
+                    $"Sposta verso {nomeDir.ToLower()}.",
+                    () => GameManager.Sposta(dir)
+                );
             }
         }
     }

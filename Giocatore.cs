@@ -207,7 +207,7 @@ public class StatusEffect
     public string Name = "";
     
     public required string target;
-    public event EventHandler? onTurnStart;
+    public Action<object>? onTurnStart;
     //todo
 
     public static StatusEffect Bruciatura(string target)
@@ -219,7 +219,7 @@ public class StatusEffect
         if(target == "giocatore")
         {
             GameManager.Giocatore.StatusEffects.Add(burn);
-            burn.onTurnStart += (sender, e) => GameManager.Giocatore.Danneggia(1);
+            burn.onTurnStart = (sender) => GameManager.Giocatore.Danneggia(1);
         }
         return burn;
     }
@@ -276,11 +276,14 @@ public static class JsonSalvataggio
                 });
             }
 
-            // Salva solo gli oggetti attualmente a terra nelle stanze
-            // (gli oggetti già raccolti non saranno più in OggettiStanza)
+            // Salva gli oggetti attualmente a terra nelle stanze.
+            // Usa IdStabile (stringa) perché il Guid cambia ad ogni Inizializza().
+            // Se un oggetto non ha IdStabile (drop nemico runtime, ecc.) viene ignorato
+            // e quindi al load non verrà ripristinato, come previsto.
             foreach (var oggst in s.OggettiStanza)
             {
-                dto.OggettiRimossi.Add(oggst.oggetto.Id.ToString());
+                if (!string.IsNullOrEmpty(oggst.oggetto.IdSalvataggio))
+                    dto.OggettiRimossi.Add(oggst.oggetto.IdSalvataggio);
             }
         }
         return dto;
@@ -300,12 +303,18 @@ public static class JsonSalvataggio
                 porta.Stato = p.Stato;
         }
 
-        // Rimuovi dalle stanze gli oggetti che non sono nello snapshot salvato
-        // (cioè quelli che il giocatore aveva raccolto prima di salvare)
-        var presentiAlSalvataggio = new HashSet<string>(dto.OggettiRimossi);
+        // Rimuovi dalle stanze gli oggetti statici che NON erano presenti al salvataggio
+        // (cioè quelli che il giocatore aveva raccolto prima di salvare).
+        // Oggetti senza IdStabile (drop runtime) non sono considerati persistenti.
+        var presentiAlSalvataggio = new HashSet<string>(
+            dto.OggettiRimossi.Where(id => !string.IsNullOrEmpty(id))
+        );
         foreach (var s in Mappa.Stanze.Values)
         {
-            s.OggettiStanza.RemoveAll(ot => !presentiAlSalvataggio.Contains(ot.oggetto.Id.ToString()));
+            s.OggettiStanza.RemoveAll(ot =>
+                !string.IsNullOrEmpty(ot.oggetto.IdSalvataggio) &&
+                !presentiAlSalvataggio.Contains(ot.oggetto.IdSalvataggio)
+            );
         }
 
         // Riposiziona il giocatore

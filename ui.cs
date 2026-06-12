@@ -73,7 +73,32 @@ public static class UI
         Console.WriteLine($"===={s.Nome.ToUpper()}====");
         Console.WriteLine($"Piano: {s.Livello}");
         Console.WriteLine($"{s.Descrizione}");
-        Console.WriteLine($"Azioni (digita per eseguire): " + string.Join("\n", s.Azioni.Keys));
+        Console.WriteLine();
+        Console.WriteLine("=== AZIONI DISPONIBILI ===");
+        MostraAzioni(s);
+    }
+
+    public static void MostraAzioni(Stanza s)
+    {
+        if (s.Azioni.Count == 0)
+        {
+            Console.WriteLine("  Nessuna azione disponibile.");
+            return;
+        }
+        // var gruppi = s.Azioni.Values.GroupBy(a => a.Categoria);
+        // foreach (var gruppo in gruppi)
+        // {
+        //     Console.WriteLine($"\n[{gruppo.Key}]");
+        //     foreach (var azione in gruppo)
+        //     {
+        //         Console.WriteLine($"  {azione.Id,-20} - {azione.Descrizione}");
+        //     }
+        // }
+        foreach (var azione in s.Azioni.Values)
+        {
+            Console.WriteLine($"  {azione.Id,-20} - {azione.Descrizione}");
+        }
+        Console.WriteLine();
     }
 
     public static void MostraDanno(string nome, int danno)
@@ -91,11 +116,34 @@ public static class UI
         Console.WriteLine($"Davanti a te compare un {n.Nome}!");
     }
 
-    public static void MostraTurnoGiocatore(Giocatore g, Combattimento combat)
+    public static void MostraTurnoGiocatore(Giocatore g, Nemico nemico)
     {
-        Console.WriteLine($"TURNO DI {g.Nome.ToUpper()}\n");
-        Console.WriteLine("Azioni:");
-        
+        Console.WriteLine($"TURNO DI {g.Nome.ToUpper()}");
+        Console.WriteLine($"HP: {g.PuntiVita}/{g.PuntiVitaMax}  Stamina: {g.Stamina}/{g.StaminaMax}");
+        Console.WriteLine($"Nemico: {nemico.Nome} (HP: {nemico.Salute}/{nemico.SaluteMax})");
+        Console.WriteLine("\nAzioni disponibili:");
+        Console.WriteLine("  attacca - attacca il nemico");
+        Console.WriteLine("  abilita  - usa l'abilità dell'arma");
+        Console.WriteLine("  usa      - usa un consumabile");
+        Console.WriteLine("  scappa   - tenta di fuggire dal combattimento");
+    }
+
+    public static void MostraVittoria(Nemico n, int oro)
+    {
+        Console.WriteLine($"\nHai sconfitto {n.Nome}!");
+        Console.WriteLine($"Hai ottenuto {oro} oro.");
+    }
+
+    public static bool ChiediFuga()
+    {
+        Console.WriteLine("Tentativo di fuga...");
+        Random rand = new Random();
+        bool success = rand.Next(100) < 40;
+        if (success)
+            Console.WriteLine("Sei riuscito a fuggire!");
+        else
+            Console.WriteLine("Non sei riuscito a fuggire!");
+        return success;
     }
 
     public static void GameOver(Giocatore g)

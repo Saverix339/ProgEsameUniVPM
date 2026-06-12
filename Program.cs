@@ -137,18 +137,17 @@ public class EsplorazioneStanza : IStato
         UI.MostraStanza(_stanza);
     }
     public RisultatoAzione agisci(string input)
-    {   
-        try
+    {
+        string id = input.ToLowerInvariant().Trim();
+        if (string.IsNullOrEmpty(id))
+            return RisultatoAzione.Errore;
+        if (!_stanza.Azioni.TryGetValue(id, out var azione))
         {
-            _stanza.Azioni[input.ToLowerInvariant()].Invoke();
-        }
-        catch (KeyNotFoundException) //Se non trova l'input
-        {
-            UI.MostraErrore($"Azione \"{input}\" non riconosciuta.\n");
+            UI.MostraErrore($"Azione \"{id}\" non riconosciuta.");
             return RisultatoAzione.Errore;
         }
+        azione.Esegui.Invoke();
         return RisultatoAzione.Continua;
-    
     }
     public void esci()
     {
@@ -187,33 +186,73 @@ public class Combattimento : IStato
     }
     public RisultatoAzione agisci(string input)
     {
-        if(FlagNemicoSconfitto == true)
+        if (FlagNemicoSconfitto)
         {
             GameManager.CambiaStato(contestoCombattimento);
+            return RisultatoAzione.Continua;
         }
-        if(TurnoCorrente == Turno.Avversario)
+
+        if (TurnoCorrente == Turno.Avversario)
         {
-            try{
+            try
+            {
                 var scelta = Avversario.ScegliAbilita();
                 scelta.Esegui(Avversario, GameManager.Giocatore);
-                TurnoCorrente = Turno.Giocatore;
-                agisci(UI.Input(GameManager.Giocatore));
-                return RisultatoAzione.Continua;
             }
             catch (Exception)
             {
-                return RisultatoAzione.Errore;
+                UI.MostraErrore("Qualcosa è andato storto!");
             }
+            TurnoCorrente = Turno.Giocatore;
+            if (GameManager.Giocatore.PuntiVita <= 0)
+                return RisultatoAzione.Continua;
+            UI.MostraTurnoGiocatore(GameManager.Giocatore, Avversario);
+            string azione = UI.Input(GameManager.Giocatore);
+            return agisci(azione);
         }
         else
         {
-            //TODO Codice per input giocatore
-            return RisultatoAzione.Errore;
+            string azione = input.ToLowerInvariant().Trim();
+            if (string.IsNullOrEmpty(azione))
+                return RisultatoAzione.Errore;
+
+            switch (azione)
+            {
+                case "attacca":
+                    Giocatore.Attacca(contestoCombattimento, Avversario);
+                    break;
+                case "abilita":
+                    Giocatore.UsaAbilitaArma(contestoCombattimento, Avversario);
+                    break;
+                case "usa":
+                    Giocatore.UsaConsumabile(contestoCombattimento, Avversario);
+                    break;
+                case "scappa":
+                    if (UI.ChiediFuga())
+                    {
+                        GameManager.CambiaStato(contestoCombattimento);
+                        return RisultatoAzione.Continua;
+                    }
+                    break;
+                default:
+                    UI.MostraErrore($"Azione \"{azione}\" non riconosciuta.");
+                    return RisultatoAzione.Errore;
+            }
+
+            if (Avversario.Salute <= 0)
+            {
+                FlagNemicoSconfitto = true;
+                int oro = new Random().Next(5, 15);
+                GameManager.Giocatore.AggiungiOro(oro);
+                UI.MostraVittoria(Avversario, oro);
+                GameManager.CambiaStato(contestoCombattimento);
+                return RisultatoAzione.Continua;
+            }
+
+            TurnoCorrente = Turno.Avversario;
+            agisci("");
+            return RisultatoAzione.Continua;
         }
-    }
-    public void AzioneNemico()
-    {
-        
     }
 
     public void esci()
