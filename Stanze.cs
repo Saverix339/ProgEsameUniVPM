@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices.Marshalling;
 using ProgEsameUniVPM;
@@ -48,7 +49,9 @@ public class Azione
     public required string Id { get; init; }
     public required string Nome { get; init; }
     public required string Descrizione { get; init; }
-    public string Categoria { get; init; } = "Altro";
+    //public string Categoria { get; init; } = "Altro";
+
+    
     public Action Esegui { get; init; } = () => { };
 
     //public static Azione Crea(string id, string nome, string descrizione, string categoria, Action callback)
@@ -60,7 +63,7 @@ public class Azione
             Nome = nome,
             Descrizione = descrizione,
             //Categoria = categoria,
-            Categoria = "Altro",
+            //Categoria = "Altro",
             Esegui = callback
         };
     }
@@ -85,6 +88,7 @@ public class Stanza
     public bool PrimaVolta { get; set; } = true;
 
     public Nemico? NemicoStanza;
+    public bool IncontroMercante = false; //NOTA: se true, oggettistanza diventa la lista del mercante di default.
 
     public bool NemicoSconfitto = false;
 
@@ -134,6 +138,20 @@ public class Stanza
             "Raccogli una torcia appoggiata vicino all'ingresso.",
             () => { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); }
         );
+        s.AggiungiAzione(
+            "parla al mercante",
+            "Parla al Mercante",
+            "Parla con il misterioso mercante e guarda la sua merce.",
+            () =>
+            {
+                var esplorazione = GameManager.StatoGioco as EsplorazioneStanza;
+                if (esplorazione is not null)
+                    GameManager.CambiaStato(new IncontroMercante { Contesto = esplorazione });
+            }
+        );
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_base() });
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Mela() });
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pane() });
         return s;
     }
 
@@ -252,6 +270,38 @@ public class Stanza
         };
         return s;
     }
+
+    public static Stanza StanzaTeletrasporto(Coord posizione)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = "teletrasporto",
+            Nome = "Stanza Teletrasporto",
+            Descrizione = "Una stanza avvolta da un alone di magia. Al centro, un cerchio runico pulsa di energia arcana.",
+            Livello = 0,
+            Coordinate = posizione
+        };
+        s.AggiungiAzione(
+            "teletrasportati",
+            "Teletrasportati",
+            "Entra nel cerchio runico e lasciati teletrasportare in una stanza casuale del dungeon.",
+            () =>
+            {
+                Random rng = new Random();
+                var altreStanze = Mappa.Stanze.Values.Where(st => st.Id != "teletrasporto").ToList();
+                if (altreStanze.Count == 0)
+                {
+                    UI.MostraErrore("Il cerchio runico non reagisce... nessuna destinazione disponibile.");
+                    return;
+                }
+                var destinazione = altreStanze[rng.Next(altreStanze.Count)];
+                UI.MostraTeletrasporto(destinazione.Nome);
+                GameManager.StanzaCorrente = destinazione;
+                GameManager.CambiaStato(new EsplorazioneStanza(destinazione));
+            }
+        );
+        return s;
+    }
 }
 
 public static class ListeStanze
@@ -268,10 +318,6 @@ public static class StanzeVisitate
     public static List<Stanza> ListaVisitate = new();
     public static void AggiungiStanza(Stanza s)
     {
-        if (s.Nome == "Stanza Teletrasporto")
-        {
-            //todo
-        }
         ListaVisitate.Add(s);
     }
 }
@@ -291,17 +337,18 @@ public static class Mappa
         var armeria = Stanza.Armeria(new Coord(1, 1));
         var cantina = Stanza.Cantina(new Coord(-1, 0));
         var tesoro = Stanza.StanzaDelTesoro(new Coord(0, 2));
+        var teletrasporto = Stanza.StanzaTeletrasporto(new Coord(-1, -1));
 
         // Registra stanze
-        foreach (var s in new[] { ingresso, corridoio, armeria, cantina, tesoro })
+        foreach (var s in new[] { ingresso, corridoio, armeria, cantina, tesoro, teletrasporto })
             Stanze[s.Coordinate] = s;
 
         // Configura adiacenze + porte
-        // Ingresso (0,0) <-> Cantina (-1,0)  : libera
-        // Ingresso (0,0) <-> Corridoio (0,1)  : libera
-        // Corridoio (0,1) <-> Armeria (1,1)   : libera
-        // Corridoio (0,1) <-> Tesoro (0,2)    : bloccata, richiede "chiave_oro"
-        //(mappa da esempio ovviamente)
+        // Ingresso (0,0) <-> Corridoio (0,1)   : libera
+        // Ingresso (0,0) <-> Cantina (-1,0)    : libera
+        // Corridoio (0,1) <-> Armeria (1,1)    : libera
+        // Corridoio (0,1) <-> Tesoro (0,2)     : bloccata, richiede "chiave_oro"
+        // Cantina (-1,0) <-> Teletrasporto (-1,-1) : libera
 
         Collega(ingresso, corridoio, Direzione.Nord, null);
         Collega(corridoio, ingresso, Direzione.Sud, null);
@@ -314,6 +361,9 @@ public static class Mappa
 
         Collega(corridoio, tesoro, Direzione.Nord, "chiave_oro");
         Collega(tesoro, corridoio, Direzione.Sud, "chiave_oro");
+
+        Collega(cantina, teletrasporto, Direzione.Sud, null);
+        Collega(teletrasporto, cantina, Direzione.Nord, null);
 
         // Aggiunge le azioni di movimento in ogni stanza
         foreach (var s in Stanze.Values)

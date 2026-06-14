@@ -260,3 +260,50 @@ public class Combattimento : IStato
         if(FlagNemicoSconfitto == true) contestoCombattimento._stanza.NemicoSconfitto = true;
     }
 }
+
+public class IncontroMercante : IStato
+{
+    public required EsplorazioneStanza Contesto;
+    public List<OggettoTrovabile> Vendita => Contesto._stanza.OggettiStanza;
+    public void entra()
+    {
+        if (Vendita.Count == 0)
+        {
+            UI.MostraMessaggio("Il tavolo del mercante è vuoto. Non c'è più nulla da comprare.");
+            GameManager.CambiaStato(Contesto);
+            return;
+        }
+        UI.ListaOggettiMercante([.. Vendita.Select(og => og.oggetto)]);
+    }
+    public RisultatoAzione agisci(string input)
+    {
+        string azione = input.ToLowerInvariant().Trim();
+        if (azione is "esci" or "lascia")
+        {
+            GameManager.CambiaStato(Contesto);
+            return RisultatoAzione.Continua;
+        }
+        try
+        {
+            var carrello = Vendita.Find(x => x.oggetto.Nome.Equals(input, StringComparison.CurrentCultureIgnoreCase));
+            GameManager.Giocatore.AggiungiOggettoInventario(carrello?.oggetto ?? throw new ArgumentNullException("Oggetto"));
+            Vendita.Remove(carrello);
+            if (Vendita.Count == 0)
+            {
+                UI.MostraMessaggio("Il mercante raccoglie le sue cose e se ne va.");
+                GameManager.CambiaStato(Contesto);
+                return RisultatoAzione.Continua;
+            }
+            return RisultatoAzione.Continua;
+        }
+        catch
+        {
+            UI.MostraErrore("Il mercante non vende quello. Digita 'esci' per lasciare il mercante.");
+            return RisultatoAzione.Errore;
+        }
+    }
+    public void esci()
+    {
+        return;
+    }
+}

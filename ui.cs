@@ -78,6 +78,17 @@ public static class UI
         MostraAzioni(s);
     }
 
+    public static void ListaOggettiMercante(List<Oggetto> oggetti)
+    {
+        if(oggetti.Count() == 0) {Console.WriteLine("Con il tavolo vuoto, il mercante se ne è andato."); return;}
+        Console.WriteLine("Nella stanza trovi un tavolo con sopra vari oggetti in vendita.\n Dietro il banco risiede una misteriosa\n");
+        Console.WriteLine("figura incappucciata. Ti osserva in silenzio.");
+        Console.WriteLine("Puoi comprare i seguenti oggetti (digita il nome per acquistare, 'esci' per andartene):");
+        foreach(var ogg in oggetti)
+        {
+            Console.WriteLine($"{ogg.Nome,-20}-{ogg.Valore} oro\n");
+        }
+    }
     public static void MostraAzioni(Stanza s)
     {
         if (s.Azioni.Count == 0)
@@ -162,6 +173,12 @@ public static class UI
     public static void MostraMessaggio(string s)
     {
         Console.WriteLine(s);
+    }
+
+    public static void MostraTeletrasporto(string nomeDestinazione)
+    {
+        Console.WriteLine("Il cerchio runico si illumina! Vieni avvolto da una luce accecante...");
+        Console.WriteLine($"...e riappaiono nella {nomeDestinazione}.");
     }
 }
 

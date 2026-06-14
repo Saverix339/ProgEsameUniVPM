@@ -22,6 +22,7 @@ public class Oggetto
     public string IdSalvataggio { get; set; } = "";
 
     public bool isChiave => ChiaveId.Length > 0;
+    public int Valore = 0;
 }
 
 public class OggettoChiave : Oggetto
