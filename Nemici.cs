@@ -1,5 +1,6 @@
 
 using ProgEsameUniVPM;
+using Microsoft.Extensions.Logging;
 
 public class Nemico : IDannegiabile
 {
@@ -17,9 +18,10 @@ public class Nemico : IDannegiabile
     public void Danneggia(int danno)
     {
         Salute -= danno;
+        Logger.Get<Nemico>().LogDebug("{Nemico} subisce {Danno} danni (HP: {HP}/{Max})", Nome, danno, Salute, SaluteMax);
         if(Salute <= 0)
         {
-            //muore
+            Logger.Get<Nemico>().LogInformation("{Nemico} sconfitto", Nome);
         }
         UI.MostraDanno(Nome, danno);
     }
@@ -30,6 +32,7 @@ public class Nemico : IDannegiabile
         {
             Salute = SaluteMax;
         }
+        Logger.Get<Nemico>().LogDebug("{Nemico} curato di {Cura} (HP: {HP}/{Max})", Nome, cura, Salute, SaluteMax);
     }
 
     public static Nemico Mimic()
@@ -102,9 +105,11 @@ public class AbilitaNemico
     {
         if(CondizioneSpeciale != null && CondizioneSpeciale(giocatore, nemico) == false)
         {
+            Logger.Get<AbilitaNemico>().LogDebug("Condizione non soddisfatta per {Abilita} di {Nemico}", Nome, nemico.Nome);
             UI.MostraErrore($"Il Nemico non riesce ad usare la abilità {Nome}!!");
             return;
         }
+        Logger.Get<AbilitaNemico>().LogDebug("{Nemico} usa {Abilita} (danno: {Danno})", nemico.Nome, Nome, Danno);
         AttaccaGiocatore?.Invoke(giocatore, nemico, Danno);
         EffettiSpeciali?.Invoke(giocatore, nemico);
     }

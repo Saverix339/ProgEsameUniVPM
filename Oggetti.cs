@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 namespace ProgEsameUniVPM;
 
 //Classe genitore di tutte le sottoclassi inerenti agli ogetti
@@ -40,6 +41,7 @@ public class OggettoChiave : Oggetto
         };
     }
 }
+
 
 // per fare arma personaggio mettere prima plubic class arma: oggetto,{} 
 //poi public int potenza/stamina=x(è il valore) int per valore string per scritta 
@@ -121,13 +123,13 @@ public class Armi : Oggetto
         if(a.LivelloRarità >= 1)
         {
             Console.WriteLine("L'arma " + a.Nome + " è già potenziata!");
+            Logger.Get<Armi>().LogDebug("Upgrade raro fallito: {Arma} già potenziata", a.Nome);
             return;
         }
-        a.LivelloRarità = 1; // 1 = raro
+        a.LivelloRarità = 1;
         a.potenza *= 2;
         a.stamina +=1;
-        /*a.Nome += " Rara";
-        a.Descrizione += " Questa arma è potenziata e di rarità 'Rara'.";*/
+        Logger.Get<Armi>().LogInformation("Arma potenziata a Rara: {Arma} (potenza: {Potenza})", a.Nome, a.potenza);
     }
     public static void RendiEpico(Armi a)
     {
@@ -138,16 +140,15 @@ public class Armi : Oggetto
         if(a.LivelloRarità >= 2)
         {
             Console.WriteLine("L'arma " + a.Nome + " è già potenziata!");
+            Logger.Get<Armi>().LogDebug("Upgrade epico fallito: {Arma} già potenziata", a.Nome);
             return;
         }else if(a.LivelloRarità == 1)
         {
-            // r0 -> r1
         }
-        a.LivelloRarità = 2; // 2 = epico
+        a.LivelloRarità = 2;
         a.potenza = (int)Math.Floor(a.potenza * 1.5f);
         a.stamina += 1;
-        /*a.Nome += " Epico";
-        a.Descrizione += " Questa arma è molto potenziata e di rarità 'Epica'.";*/
+        Logger.Get<Armi>().LogInformation("Arma potenziata a Epica: {Arma} (potenza: {Potenza})", a.Nome, a.potenza);
     }
     public static void RendiLeggendario(Armi a)
     {
@@ -155,14 +156,9 @@ public class Armi : Oggetto
         {
             throw new Exception("Livello rarità non valido.");
         }
-        // 2 > 4 > 6 > 9
-        // 1 > 2 > 3 > 4
-        // 3 > 6 > 9 > 13
-        a.LivelloRarità = 3; // 2 = epico
+        a.LivelloRarità = 3;
         a.potenza = (int)Math.Floor(a.potenza * 1.5f);
-        // a.stamina += 1;
-        /*a.Nome += " Leggendario";
-        a.Descrizione += " Questa arma è suprema, di rarità 'Leggendaria'.";*/
+        Logger.Get<Armi>().LogInformation("Arma potenziata a Leggendaria: {Arma} (potenza: {Potenza})", a.Nome, a.potenza);
     }
 }
 
@@ -176,6 +172,7 @@ public class Consumabili : Oggetto
     public float recuperoStam = 0f;
     public void Usa()
     {
+        Logger.Get<Consumabili>().LogDebug("Usato consumabile: {Oggetto}", Nome);
         if(recuperoPV != 0)
         {
             GameManager.Giocatore.Cura((int)Math.Round(GameManager.Giocatore.PuntiVitaMax * recuperoPV));

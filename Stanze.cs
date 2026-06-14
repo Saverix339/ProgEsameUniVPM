@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices.Marshalling;
 using ProgEsameUniVPM;
+using Microsoft.Extensions.Logging;
 
 public readonly record struct Coord(int X, int Y)
 {
@@ -291,10 +292,12 @@ public class Stanza
                 var altreStanze = Mappa.Stanze.Values.Where(st => st.Id != "teletrasporto").ToList();
                 if (altreStanze.Count == 0)
                 {
+                    Logger.Get<Stanza>().LogWarning("Teletrasporto: nessuna destinazione disponibile");
                     UI.MostraErrore("Il cerchio runico non reagisce... nessuna destinazione disponibile.");
                     return;
                 }
                 var destinazione = altreStanze[rng.Next(altreStanze.Count)];
+                Logger.Get<Stanza>().LogInformation("Teletrasporto: {Origine} -> {Destinazione}", s.Nome, destinazione.Nome);
                 UI.MostraTeletrasporto(destinazione.Nome);
                 GameManager.StanzaCorrente = destinazione;
                 GameManager.CambiaStato(new EsplorazioneStanza(destinazione));
@@ -331,6 +334,7 @@ public static class Mappa
     public static void Inizializza()
     {
         Stanze.Clear();
+        Logger.For("Mappa").LogDebug("Inizializzazione mappa");
 
         var ingresso = Stanza.Ingresso(new Coord(0, 0));
         var corridoio = Stanza.Corridoio(new Coord(0, 1));
@@ -368,6 +372,8 @@ public static class Mappa
         // Aggiunge le azioni di movimento in ogni stanza
         foreach (var s in Stanze.Values)
             AggiungiAzioniMovimento(s);
+
+        Logger.For("Mappa").LogInformation("Mappa inizializzata: {N} stanze", Stanze.Count);
     }
 
     private static void Collega(Stanza da, Stanza a, Direzione dir, string? chiaveRichiesta)

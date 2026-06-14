@@ -3,6 +3,7 @@ using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ProgEsameUniVPM;
+using Microsoft.Extensions.Logging;
 
 public interface IDannegiabile
 {
@@ -42,16 +43,19 @@ public class Giocatore : IDannegiabile
         if (o is Armi arma)
         {
             EquipaggiaArma(arma);
+            Logger.Get<Giocatore>().LogInformation("Arma equipaggiata: {Arma}", arma.Nome);
             UI.MostraMessaggio($"Hai equipaggiato: {arma.Nome}.");
             return;
         }
         if (o is OggettoChiave chiave)
         {
             DaiChiave(chiave.Serratura);
+            Logger.Get<Giocatore>().LogInformation("Chiave raccolta: {Chiave} (serratura: {Serratura})", chiave.Nome, chiave.Serratura);
             UI.MostraMessaggio($"Hai raccolto: {chiave.Nome} (apre serrature {chiave.Serratura}).");
             return;
         }
         AggiungiOggettoInventario(o);
+        Logger.Get<Giocatore>().LogInformation("Oggetto raccolto: {Oggetto}", o.Nome);
         UI.MostraMessaggio($"Hai raccolto: {o.Nome}.");
     }
 
@@ -81,6 +85,7 @@ public class Giocatore : IDannegiabile
         Oro += valore;
         if (Oro < 0)
         {
+            Logger.Get<Giocatore>().LogDebug("Oro sceso sotto 0, azzerato");
             Console.WriteLine("Oro minore di 0\n");
             Oro = 0;
             return;
@@ -96,9 +101,11 @@ public class Giocatore : IDannegiabile
     public void Danneggia(int danno)
     {
         PuntiVita -= danno;
+        Logger.Get<Giocatore>().LogDebug("Giocatore subisce {Danno} danni (HP: {HP}/{Max})", danno, PuntiVita, PuntiVitaMax);
         UI.MostraDanno(GameManager.Giocatore.Nome, danno);
         if (PuntiVita < 0)
         {
+            Logger.Get<Giocatore>().LogInformation("GAME OVER: {Nome} è morto", Nome);
             UI.GameOver(this);
         }
     }
@@ -109,6 +116,7 @@ public class Giocatore : IDannegiabile
         {
             PuntiVita = PuntiVitaMax;
         }
+        Logger.Get<Giocatore>().LogDebug("Giocatore curato di {Cura} (HP: {HP}/{Max})", cura, PuntiVita, PuntiVitaMax);
     }
     /*public void CambiaPV(int quantita, bool danno)
     {
@@ -126,7 +134,7 @@ public class Giocatore : IDannegiabile
         if(-quantita > Stamina)
         {
             Console.WriteLine("Stamina Insufficente!\n");
-            //Potremmo usare un evento
+            Logger.Get<Giocatore>().LogDebug("Stamina insufficiente (richiesta: {Richiesta}, disponibile: {Disponibile})", -quantita, Stamina);
             return false;
         }
         Stamina += quantita;
@@ -134,6 +142,7 @@ public class Giocatore : IDannegiabile
         {
             Stamina = StaminaMax;
         }
+        Logger.Get<Giocatore>().LogDebug("Stamina cambiata di {Delta} (ora: {Attuale}/{Max})", quantita, Stamina, StaminaMax);
         return true;
     }
 
@@ -159,9 +168,73 @@ public class Giocatore : IDannegiabile
         Inventario.Push(o);
     }
 
-    public Oggetto? RimuoviOggettoInventario()
+    public static void FaiCadereOggetto(Stanza s, Oggetto o)
     {
-        if (Inventario.Count() != 0) return Inventario.Pop();
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = o });
+        string idAzione = $"raccogli {o.Nome.ToLower()}";
+        if (!s.Azioni.ContainsKey(idAzione))
+        {
+            s.AggiungiAzione(
+                idAzione,
+                $"Raccogli {o.Nome}",
+                $"Raccogli {o.Nome} da terra.",
+                () => 
+                {
+                    var daRaccogliere = s.OggettiStanza.FirstOrDefault(x => x.oggetto.Nome == o.Nome);
+                    if (daRaccogliere != null)
+                    {
+                        GameManager.Giocatore.Raccogli(daRaccogliere.oggetto);
+                        s.OggettiStanza.Remove(daRaccogliere);
+                    }
+                    // Rimuovi l'azione dalla stanza solo se non ci sono più oggetti con quel nome
+                    if (!s.OggettiStanza.Any(x => x.oggetto.Nome == o.Nome))
+                    {
+                        s.RimuoviAzione(idAzione);
+                    }
+                }
+            );
+        }    
+    }
+
+    public Oggetto? RimuoviOggettoInventario(bool lasciatoVolontariamente = true)
+    {
+        if (Inventario.Count() != 0)
+        {
+            var o = Inventario.Pop();
+            if (lasciatoVolontariamente && GameManager.StatoGioco is EsplorazioneStanza esplorazione)
+            {
+                // Prefisso speciale per salvarlo su JSON
+                o.IdSalvataggio = "caduto_" + Guid.NewGuid().ToString(); 
+                Stanza s = esplorazione._stanza;
+                FaiCadereOggetto(s, o);
+                // s.OggettiStanza.Add(new OggettoTrovabile { oggetto = o });
+                // string idAzione = $"raccogli {o.Nome.ToLower()}";
+                // if (!s.Azioni.ContainsKey(idAzione))
+                // {
+                //     s.AggiungiAzione(
+                //         idAzione,
+                //         $"Raccogli {o.Nome}",
+                //         $"Raccogli {o.Nome} da terra.",
+                //         () => 
+                //         {
+                //             var daRaccogliere = s.OggettiStanza.FirstOrDefault(x => x.oggetto.Nome == o.Nome);
+                //             if (daRaccogliere != null)
+                //             {
+                //                 GameManager.Giocatore.Raccogli(daRaccogliere.oggetto);
+                //                 s.OggettiStanza.Remove(daRaccogliere);
+                //             }
+                //             // Rimuovi l'azione dalla stanza solo se non ci sono più oggetti con quel nome
+                //             if (!s.OggettiStanza.Any(x => x.oggetto.Nome == o.Nome))
+                //             {
+                //                 s.RimuoviAzione(idAzione);
+                //             }
+                //         }
+                //     );
+                // }
+                UI.MostraMessaggio($"Hai lasciato cadere {o.Nome} nella stanza.");
+            }
+            return o;
+        }
         return null;
     }
 
@@ -178,6 +251,7 @@ public class Giocatore : IDannegiabile
     public static void Attacca(EsplorazioneStanza contesto, Nemico nem)
     {
         int danno = GameManager.Giocatore.Arma?.potenza ?? 0;
+        Logger.Get<Giocatore>().LogDebug("Attacco a {Nemico} per {Danno} danni", nem.Nome, danno);
         nem.Danneggia(danno);
     }
 
@@ -185,10 +259,15 @@ public class Giocatore : IDannegiabile
     {
         try{
             Armi armaEquipaggiata = GameManager.Giocatore.Arma ?? throw new NullReferenceException();
-            if(armaEquipaggiata.AbiitaArma != null) armaEquipaggiata.AbiitaArma?.Esegui(GameManager.Giocatore, nem);
+            if(armaEquipaggiata.AbiitaArma != null)
+            {
+                Logger.Get<Giocatore>().LogDebug("Abilità arma usata: {Abilita} su {Nemico}", armaEquipaggiata.AbiitaArma.Nome, nem.Nome);
+                armaEquipaggiata.AbiitaArma?.Esegui(GameManager.Giocatore, nem);
+            }
         }
         catch (NullReferenceException)
         {
+            Logger.Get<Giocatore>().LogWarning("Tentativo uso abilità senza arma equipaggiata");
             UI.MostraErrore("Nessuna arma.");
         }
     }
@@ -197,6 +276,7 @@ public class Giocatore : IDannegiabile
         if(GameManager.Giocatore.Inventario.Peek() is Consumabili)
         {
             Consumabili consumabile = (Consumabili)GameManager.Giocatore.Inventario.Pop();
+            Logger.Get<Giocatore>().LogInformation("Consumabile usato: {Oggetto} (HP: {HP}, Stam: {Stam})", consumabile.Nome, GameManager.Giocatore.PuntiVita, GameManager.Giocatore.Stamina);
             consumabile.Usa();
         }
     }
@@ -242,12 +322,19 @@ public static class JsonSalvataggio
         public StatoPorta Stato { get; set; }
     }
 
+    public class OggettiCadutiFlag
+    {
+        public string IdStanza {get;set;} = "";
+        public Oggetto Oggetto {get;set;} = null!; 
+    }
+
     public class StatoMondoFlags
     {
         public string StanzaCorrenteId{ get; set; } = "";
         public List<StatoPorteFlag> StatoPorte{ get; set; } = new();
         public List<string> OggettiRimossi{ get; set; } = new();
         public List<string> OggettiMercante {get; set;} = new();
+        public List<OggettiCadutiFlag> OggettiCaduti {get; set;} = new();
         public List<string> NemiciRimossi {get;set;} = new();
     }
 
@@ -282,6 +369,10 @@ public static class JsonSalvataggio
             // e quindi al load non verrà ripristinato, come previsto.
             foreach (var oggst in s.OggettiStanza)
             {
+                if (oggst.oggetto.IdSalvataggio.StartsWith("caduto_"))
+                {
+                    dto.OggettiCaduti.Add(new OggettiCadutiFlag{ IdStanza = s.Id, Oggetto = oggst.oggetto });
+                }
                 if (!string.IsNullOrEmpty(oggst.oggetto.IdSalvataggio))
                     dto.OggettiRimossi.Add(oggst.oggetto.IdSalvataggio);
             }
@@ -316,7 +407,39 @@ public static class JsonSalvataggio
                 !presentiAlSalvataggio.Contains(ot.oggetto.IdSalvataggio)
             );
         }
-
+        foreach (var caduto in dto.OggettiCaduti)
+        {
+            var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == caduto.IdStanza);
+            if (stanza is not null)
+            {
+                stanza.OggettiStanza.Add(new OggettoTrovabile { oggetto = caduto.Oggetto, IsTrovabile = true });
+                Giocatore.FaiCadereOggetto(stanza, caduto.Oggetto);
+                // string nomeOgg = caduto.Oggetto.Nome;
+                // string idAzione = $"raccogli {nomeOgg.ToLower()}";
+                
+                // if (!stanza.Azioni.ContainsKey(idAzione))
+                // {
+                //     stanza.AggiungiAzione(
+                //         idAzione,
+                //         $"Raccogli {nomeOgg}",
+                //         $"Raccogli {nomeOgg} da terra.",
+                //         () => 
+                //         {
+                //             var daRaccogliere = stanza.OggettiStanza.FirstOrDefault(x => x.oggetto.Nome == nomeOgg);
+                //             if (daRaccogliere != null)
+                //             {
+                //                 GameManager.Giocatore.Raccogli(daRaccogliere.oggetto);
+                //                 stanza.OggettiStanza.Remove(daRaccogliere);
+                //             }
+                //             if (!stanza.OggettiStanza.Any(x => x.oggetto.Nome == nomeOgg))
+                //             {
+                //                 stanza.RimuoviAzione(idAzione);
+                //             }
+                //         }
+                //     );
+                // }
+            }
+        }
         // Riposiziona il giocatore
         var corrente = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == dto.StanzaCorrenteId);
         if (corrente is not null)
@@ -330,15 +453,18 @@ public static class JsonSalvataggio
     {
         var data = new Salvataggio { Giocatore = g, Mondo = CatturaMondo() };
         File.WriteAllText(percorso, JsonSerializer.Serialize(data, Opzioni));
+        Logger.For("JsonSalvataggio").LogInformation("Partita salvata su {File}", percorso);
     }
 
     public static Salvataggio? caricaSalvataggio()
     {
         if (!File.Exists(percorso))
         {
+            Logger.For("JsonSalvataggio").LogWarning("File salvataggio non trovato: {File}", percorso);
             UI.MostraErrore("File non trovato.");
             return null;
         }
+        Logger.For("JsonSalvataggio").LogInformation("Caricamento salvataggio da {File}", percorso);
         return JsonSerializer.Deserialize<Salvataggio>(File.ReadAllText(percorso), Opzioni);
     }
 }
