@@ -21,12 +21,16 @@ public class Giocatore : IDannegiabile
     public int Stamina {get; set;}
     public int StaminaMax {get; set;}
 
+    public int Difesa = 0;
+
     public int Oro {get; set;}
 
     public Stack<Oggetto> Inventario {get; private set;} = new();
     public int InventarioMax {get; private set;} = 10;
 
     public Armi? Arma { get; private set; }
+
+    public int ModificatoreDanno { get; set; }
 
     public void EquipaggiaArma(Armi arma) => Arma = arma;
 
@@ -100,9 +104,10 @@ public class Giocatore : IDannegiabile
     }
     public void Danneggia(int danno)
     {
-        PuntiVita -= danno;
-        Logger.Get<Giocatore>().LogDebug("Giocatore subisce {Danno} danni (HP: {HP}/{Max})", danno, PuntiVita, PuntiVitaMax);
-        UI.MostraDanno(GameManager.Giocatore.Nome, danno);
+        int dannoEffettivo = danno - Difesa;
+        PuntiVita -= dannoEffettivo;
+        Logger.Get<Giocatore>().LogDebug("Giocatore subisce {Danno} danni (difesa: {Difesa}, effettivi: {Effettivo}) (HP: {HP}/{Max})", danno, Difesa, dannoEffettivo, PuntiVita, PuntiVitaMax);
+        UI.MostraDanno(GameManager.Giocatore.Nome, dannoEffettivo);
         if (PuntiVita < 0)
         {
             Logger.Get<Giocatore>().LogInformation("GAME OVER: {Nome} è morto", Nome);
@@ -250,7 +255,8 @@ public class Giocatore : IDannegiabile
     
     public static void Attacca(EsplorazioneStanza contesto, Nemico nem)
     {
-        int danno = GameManager.Giocatore.Arma?.potenza ?? 0;
+        int danno = (GameManager.Giocatore.Arma?.potenza ?? 0) + GameManager.Giocatore.ModificatoreDanno;
+        if (danno < 0) danno = 0;
         Logger.Get<Giocatore>().LogDebug("Attacco a {Nemico} per {Danno} danni", nem.Nome, danno);
         nem.Danneggia(danno);
     }
@@ -282,29 +288,106 @@ public class Giocatore : IDannegiabile
     }
 }
 
+public enum Target
+{
+    Giocatore,
+    Nemico
+}
+
 public class StatusEffect
 {
     public string Name = "";
-    
-    public required string target;
+    public int turniRimanenti = 0;
+    public Target target;
     public Action<object>? onTurnStart;
-    //todo
+    public Action<object>? onRemove;
 
-    public static StatusEffect Bruciatura(string target)
+    public static void ProcessaTurno(List<StatusEffect> effects, object target)
+    {
+        for (int i = effects.Count - 1; i >= 0; i--)
+        {
+            var eff = effects[i];
+            eff.onTurnStart?.Invoke(target);
+            eff.turniRimanenti--;
+            if (eff.turniRimanenti <= 0)
+            {
+                eff.onRemove?.Invoke(target);
+                effects.RemoveAt(i);
+            }
+        }
+    }
+
+    public static StatusEffect Bruciatura(Target target, int durata = 3)
     {
         StatusEffect burn = new(){
             target = target,
-            Name = "bruciatura"
+            Name = "bruciatura",
+            turniRimanenti = durata
         };
-        if(target == "giocatore")
+        if(target == Target.Giocatore)
         {
             GameManager.Giocatore.StatusEffects.Add(burn);
             burn.onTurnStart = (sender) => GameManager.Giocatore.Danneggia(1);
         }
         return burn;
     }
-    // status effect bleed
+
+    public static StatusEffect Indebolimento(Target target, int durata = 3)
+    {
+        StatusEffect weak = new()
+        {
+            target = target,
+            Name = "indebolimento",
+            turniRimanenti = durata
+        };
+        if (target == Target.Giocatore)
+        {
+            GameManager.Giocatore.ModificatoreDanno -= 10;
+            GameManager.Giocatore.StatusEffects.Add(weak);
+            weak.onRemove = (sender) => GameManager.Giocatore.ModificatoreDanno += 10;
+        }
+        return weak;
+    }
+    
+    public static StatusEffect Sbilancio(Target target, int durata = 3)
+    {
+        StatusEffect bal = new()
+        {
+            target = target,
+            Name = "sbilanciamento",
+            turniRimanenti = durata
+        };
+        if (target == Target.Giocatore)
+        {
+            GameManager.Giocatore.StatusEffects.Add(bal);
+            bal.onTurnStart = (sender) => 
+                {
+                    if(new Random().Next(1,11) == 10)
+                    {
+                        DifesaGiu(Target.Giocatore, 1, 10);
+                    }
+            }; 
+        }
+        return bal;
+    }
+    public static StatusEffect DifesaGiu(Target target, int durata = 1, int quantita = 5)
+    {
+        StatusEffect difg = new()
+        {
+            target = target,
+            Name = $"Difesa -{quantita}",
+            turniRimanenti = durata
+        };
+        if(target == Target.Giocatore)
+        {
+            GameManager.Giocatore.Difesa -= quantita;
+            GameManager.Giocatore.StatusEffects.Add(difg);
+            difg.onRemove = (sender) => GameManager.Giocatore.Difesa += quantita;
+        }
+        return difg;
+    }
 }
+
 
 public static class JsonSalvataggio
 {

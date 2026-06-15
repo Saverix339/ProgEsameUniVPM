@@ -240,6 +240,9 @@ public class Combattimento : IStato
     }
     public RisultatoAzione agisci(string input)
     {
+        StatusEffect.ProcessaTurno(GameManager.Giocatore.StatusEffects, GameManager.Giocatore);
+        StatusEffect.ProcessaTurno(Avversario.statusEffects, Avversario);
+
         if (FlagNemicoSconfitto)
         {
             GameManager.CambiaStato(contestoCombattimento);

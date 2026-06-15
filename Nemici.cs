@@ -40,7 +40,7 @@ public class Nemico : IDannegiabile
         var s = new Nemico()
         {
             Nome = "Mimic",
-            Descrizione = "",
+            Descrizione = "Una creatura mutaforma camuffato come cassa del tesoro, fai attenzione ai suoi denti aguzzi.",
             Salute = 80,
             SaluteMax = 80,
             Abilita = new()
@@ -67,6 +67,77 @@ public class Nemico : IDannegiabile
         s.Pesa();
         return s;
     }
+
+    public static Nemico MaestroArmi()
+    {
+        var s = new Nemico()
+        {
+            Nome = "Maestro",
+            Descrizione = "Maestro dell'arte della spada.",
+            Salute = 160,
+            SaluteMax = 160,
+            Abilita = new()
+            {
+                new AbilitaNemico
+                {
+                    Nome = "Taglio",
+                    Danno = 15,
+                    PesoProbabilita = 2,
+                    AttaccaGiocatore = (gioc, nem, dan) =>
+                    {
+                        gioc.Danneggia(dan);
+                    }
+                },
+                new AbilitaNemico
+                {
+                    Nome = "Disarmo",
+                    PesoProbabilita = 1,
+                    EffettiSpeciali = (gioc, nem) =>
+                    {
+                        StatusEffect.Indebolimento(Target.Giocatore);
+                    }
+                }
+            }
+        };
+        s.Pesa();
+        return s;
+    }
+
+      public static Nemico Guardiano()
+    {
+        var s = new Nemico()
+        {
+            Nome = "Guardiano Della Cripta",
+            Descrizione = "Maestro dell'arte dello scudo.",
+            Salute = 185,
+            SaluteMax = 185,
+            Abilita = new()
+            {
+                new AbilitaNemico
+                {
+                    Nome = "Colpo di Scudo",
+                    Danno = 10,
+                    PesoProbabilita = 2,
+                    AttaccaGiocatore = (gioc, nem, dan) =>
+                    {
+                        gioc.Danneggia(dan);
+                    }
+                },
+                new AbilitaNemico
+                {
+                    Nome = "Colpo in Testa",
+                    PesoProbabilita = 1,
+                    EffettiSpeciali = (gioc, nem) =>
+                    {
+                        StatusEffect.Indebolimento(Target.Giocatore);
+                    }
+                }
+            }
+        };
+        s.Pesa();
+        return s;
+    }
+
 
     private void Pesa()
     {
