@@ -138,7 +138,7 @@ public class Giocatore : IDannegiabile
     {
         if(-quantita > Stamina)
         {
-            Console.WriteLine("Stamina Insufficente!\n");
+            UI.MostraMessaggio("Stamina Insufficente!\n");
             Logger.Get<Giocatore>().LogDebug("Stamina insufficiente (richiesta: {Richiesta}, disponibile: {Disponibile})", -quantita, Stamina);
             return false;
         }
@@ -279,7 +279,8 @@ public class Giocatore : IDannegiabile
     }
     public static void UsaConsumabile(EsplorazioneStanza contesto, Nemico nem)
     {
-        if(GameManager.Giocatore.Inventario.Peek() is Consumabili)
+        GameManager.Giocatore.Inventario.TryPeek(out var ogg)
+        if(ogg is Consumabili)
         {
             Consumabili consumabile = (Consumabili)GameManager.Giocatore.Inventario.Pop();
             Logger.Get<Giocatore>().LogInformation("Consumabile usato: {Oggetto} (HP: {HP}, Stam: {Stam})", consumabile.Nome, GameManager.Giocatore.PuntiVita, GameManager.Giocatore.Stamina);
@@ -419,6 +420,7 @@ public static class JsonSalvataggio
         public List<string> OggettiMercante {get; set;} = new();
         public List<OggettiCadutiFlag> OggettiCaduti {get; set;} = new();
         public List<string> NemiciRimossi {get;set;} = new();
+        public Dictionary<string, string> MinibossAssegnati {get; set;} = new();
     }
 
     public class Salvataggio
@@ -433,6 +435,10 @@ public static class JsonSalvataggio
         {
             StanzaCorrenteId = GameManager.StanzaCorrente.Id
         };
+        // Salva assegnazioni miniboss
+        foreach (var (id, nome) in Mappa.AssegnazioniMiniboss)
+            dto.MinibossAssegnati[id] = nome;
+
         foreach (var s in Mappa.Stanze.Values)
         {
             // Salva lo stato delle porte
@@ -445,6 +451,10 @@ public static class JsonSalvataggio
                     Stato = porta.Stato
                 });
             }
+
+            // Salva nemici sconfitti
+            if (s.NemicoSconfitto)
+                dto.NemiciRimossi.Add(s.Id);
 
             // Salva gli oggetti attualmente a terra nelle stanze.
             // Usa IdStabile (stringa) perché il Guid cambia ad ogni Inizializza().
@@ -467,6 +477,29 @@ public static class JsonSalvataggio
     {
         // Re-inizializza la mappa (stato default)
         Mappa.Inizializza();
+
+        // Ripristina assegnazioni miniboss
+        foreach (var (idStanza, nome) in dto.MinibossAssegnati)
+        {
+            var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == idStanza);
+            if (stanza is not null)
+            {
+                var nemico = Mappa.NemicoCopiabile.DaString(nome);
+                if (nemico is not null)
+                    stanza.NemicoStanza = nemico;
+            }
+        }
+
+        // Ripristina nemici sconfitti
+        foreach (var idStanza in dto.NemiciRimossi)
+        {
+            var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == idStanza);
+            if (stanza is not null)
+            {
+                stanza.NemicoSconfitto = true;
+                stanza.NemicoStanza = null;
+            }
+        }
 
         // Applica stato delle porte
         foreach (var p in dto.StatoPorte)

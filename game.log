@@ -1,0 +1,21 @@
+[2026-06-16 14:54:30] [INFORMATION] ProgEsameUniVPM.Program ====INIZIO GIOCO====
+[2026-06-16 14:54:30] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> CreazionePersonaggio
+[2026-06-16 14:54:37] [INFORMATION] ProgEsameUniVPM.CreazionePersonaggio Personaggio creato: Saverio
+[2026-06-16 14:54:39] [INFORMATION] ProgEsameUniVPM.CreazionePersonaggio Arma iniziale scelta: Spada
+[2026-06-16 14:54:39] [DEBUG] Mappa                Inizializzazione mappa
+[2026-06-16 14:54:39] [INFORMATION] Mappa                Mappa inizializzata: 20 stanze
+[2026-06-16 14:54:39] [INFORMATION] ProgEsameUniVPM.Program Nuova partita iniziata. Stanza iniziale: Armeria
+[2026-06-16 14:54:39] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> EsplorazioneStanza
+[2026-06-16 14:54:39] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Armeria (Livello 0)
+[2026-06-16 15:05:43] [INFORMATION] ProgEsameUniVPM.Program ====INIZIO GIOCO====
+[2026-06-16 15:05:43] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> CreazionePersonaggio
+[2026-06-16 15:05:47] [INFORMATION] ProgEsameUniVPM.CreazionePersonaggio Personaggio creato: Saverio
+[2026-06-16 15:05:49] [INFORMATION] ProgEsameUniVPM.CreazionePersonaggio Arma iniziale scelta: Spada
+[2026-06-16 15:05:49] [DEBUG] Mappa                Inizializzazione mappa
+[2026-06-16 15:05:49] [INFORMATION] Mappa                Mappa inizializzata: 20 stanze
+[2026-06-16 15:05:49] [INFORMATION] ProgEsameUniVPM.Program Nuova partita iniziata. Stanza iniziale: Ingresso
+[2026-06-16 15:05:49] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> EsplorazioneStanza
+[2026-06-16 15:05:49] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Ingresso (Livello 0)
+[2026-06-16 15:06:02] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: parla al mercante
+[2026-06-16 15:06:02] [DEBUG] GameManager          Transizione stato: EsplorazioneStanza -> IncontroMercante
+[2026-06-16 15:06:02] [INFORMATION] ProgEsameUniVPM.IncontroMercante Incontro mercante: 3 oggetti disponibili

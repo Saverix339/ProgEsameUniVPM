@@ -54,7 +54,7 @@ class Program
             GameManager.CambiaStato(new CreazionePersonaggio());
 
             Mappa.Inizializza();
-            GameManager.StanzaCorrente = Mappa.Verso(new Coord(0, 0))!;
+            GameManager.StanzaCorrente = Mappa.Stanze[Mappa.CoordinateIniziali];
             log.LogInformation("Nuova partita iniziata. Stanza iniziale: {Stanza}", GameManager.StanzaCorrente.Nome);
             GameManager.CambiaStato(new EsplorazioneStanza(GameManager.StanzaCorrente));
         }

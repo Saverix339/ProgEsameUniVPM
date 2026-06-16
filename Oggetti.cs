@@ -122,7 +122,7 @@ public class Armi : Oggetto
 
         if(a.LivelloRarità >= 1)
         {
-            Console.WriteLine("L'arma " + a.Nome + " è già potenziata!");
+            UI.MostraErrore("L'arma " + a.Nome + " è già potenziata!");
             Logger.Get<Armi>().LogDebug("Upgrade raro fallito: {Arma} già potenziata", a.Nome);
             return;
         }

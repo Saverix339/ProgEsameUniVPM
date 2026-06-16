@@ -55,6 +55,7 @@ public static class GameManager
 
         log.LogInformation("Spostamento: {Da} -> {A} ({Direzione})", corrente.Nome, target.Nome, direzione);
         StanzaCorrente = target;
+        Giocatore.CambiaStamina(2);
         var esplorazione = new EsplorazioneStanza(StanzaCorrente);
         if(StanzaCorrente.NemicoStanza is not null && !StanzaCorrente.NemicoSconfitto)
         {

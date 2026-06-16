@@ -139,6 +139,41 @@ public class Nemico : IDannegiabile
     }
 
 
+    public static Nemico Boss()
+    {
+        var s = new Nemico()
+        {
+            Nome = "Signore del Dungeon",
+            Descrizione = "Il signore oscuro del dungeon. Un essere di pura malvagità.",
+            Salute = 300,
+            SaluteMax = 300,
+            Abilita = new()
+            {
+                new AbilitaNemico
+                {
+                    Nome = "Oscurità",
+                    Danno = 20,
+                    PesoProbabilita = 2,
+                    AttaccaGiocatore = (gioc, nem, dan) =>
+                    {
+                        gioc.Danneggia(dan);
+                    }
+                },
+                new AbilitaNemico
+                {
+                    Nome = "Maledizione",
+                    PesoProbabilita = 1,
+                    EffettiSpeciali = (gioc, nem) =>
+                    {
+                        StatusEffect.Indebolimento(Target.Giocatore);
+                    }
+                }
+            }
+        };
+        s.Pesa();
+        return s;
+    }
+
     private void Pesa()
     {
         int tot = 0;

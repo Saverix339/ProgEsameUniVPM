@@ -123,11 +123,11 @@ public class Stanza
     }
     */
 
-    public static Stanza Ingresso(Coord posizione)
+    public static Stanza Ingresso(Coord posizione, string id = "ingresso")
     {
         Stanza s = new Stanza()
         {
-            Id = "ingresso",
+            Id = id,
             Nome = "Ingresso",
             Descrizione = "L'ingresso del dungeon. Un freddo vento soffia da nord.",
             Livello = 0,
@@ -139,28 +139,28 @@ public class Stanza
             "Raccogli una torcia appoggiata vicino all'ingresso.",
             () => { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); }
         );
-        s.AggiungiAzione(
-            "parla al mercante",
-            "Parla al Mercante",
-            "Parla con il misterioso mercante e guarda la sua merce.",
-            () =>
-            {
-                var esplorazione = GameManager.StatoGioco as EsplorazioneStanza;
-                if (esplorazione is not null)
-                    GameManager.CambiaStato(new IncontroMercante { Contesto = esplorazione });
-            }
-        );
+        // s.AggiungiAzione(
+        //     "parla al mercante",
+        //     "Parla al Mercante",
+        //     "Parla con il misterioso mercante e guarda la sua merce.",
+        //     () =>
+        //     {
+        //         var esplorazione = GameManager.StatoGioco as EsplorazioneStanza;
+        //         if (esplorazione is not null)
+        //             GameManager.CambiaStato(new IncontroMercante { Contesto = esplorazione });
+        //     }
+        // );
         s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_base() });
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Mela() });
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pane() });
+        //s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Mela() });
+        //s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pane() });
         return s;
     }
 
-    public static Stanza StanzaDelTesoro(Coord posizione)
+    public static Stanza StanzaDelTesoro(Coord posizione, string id = "tesoro")
     {
         Stanza s = new Stanza()
         {
-            Id = "tesoro",
+            Id = id,
             Nome = "Stanza del Tesoro",
             Descrizione = "Tesoro ovunque. Monete d'oro, gemme...",
             Livello = 0,
@@ -175,11 +175,11 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Armeria(Coord posizione)
+    public static Stanza Armeria(Coord posizione, string id = "armeria")
     {
         Stanza s = new Stanza()
         {
-            Id = "armeria",
+            Id = id,
             Nome = "Armeria",
             Descrizione = "Armeria dove puoi migliorare la tua arma.",
             Livello = 0,
@@ -203,11 +203,11 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Cantina(Coord posizione)
+    public static Stanza Cantina(Coord posizione, string id = "cantina")
     {
         Stanza s = new Stanza()
         {
-            Id = "cantina",
+            Id = id,
             Nome = "Cantina",
             Descrizione = "Rifornimento cibo e pozioni. Vedi qualcosa luccicare in un angolo.",
             Livello = 0,
@@ -246,11 +246,11 @@ public class Stanza
         return s;
     }
 
-    public static Stanza Corridoio(Coord posizione)
+    public static Stanza Corridoio(Coord posizione, string id = "corridoio")
     {
         Stanza s = new Stanza()
         {
-            Id = "corridoio",
+            Id = id,
             Nome = "Corridoio",
             Descrizione = "Un corridoio umido. A nord sembra esserci una porta pesante.",
             Livello = 0,
@@ -272,11 +272,11 @@ public class Stanza
         return s;
     }
 
-    public static Stanza StanzaTeletrasporto(Coord posizione)
+    public static Stanza StanzaTeletrasporto(Coord posizione, string id = "teletrasporto")
     {
         Stanza s = new Stanza()
         {
-            Id = "teletrasporto",
+            Id = id,
             Nome = "Stanza Teletrasporto",
             Descrizione = "Una stanza avvolta da un alone di magia. Al centro, un cerchio runico pulsa di energia arcana.",
             Livello = 0,
@@ -305,6 +305,187 @@ public class Stanza
         );
         return s;
     }
+
+    public static Stanza StanzaCurativa(Coord posizione, string id)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = id,
+            Nome = "Stanza Curativa",
+            Descrizione = "Una stanza avvolta da una luce calda e ristoratrice. Senti le tue energie rinnovarsi.",
+            Livello = 0,
+            Coordinate = posizione
+        };
+        s.AggiungiAzione(
+            "riposati",
+            "Riposati",
+            "Riposati nella luce curativa e recupera le energie.",
+            () =>
+            {
+                GameManager.Giocatore.Cura(GameManager.Giocatore.PuntiVitaMax);
+                GameManager.Giocatore.CambiaStamina(GameManager.Giocatore.StaminaMax);
+                UI.MostraMessaggio("Ti sei riposato e hai recuperato tutte le energie!");
+            }
+        );
+        return s;
+    }
+
+    public static Stanza Inceneritore(Coord posizione, string id)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = id,
+            Nome = "Inceneritore",
+            Descrizione = "Un grande inceneritore al centro della stanza emana un calore intenso. Fiamme guizzano dalle grate.",
+            Livello = 0,
+            Coordinate = posizione
+        };
+        s.AggiungiAzione(
+            "Incanta",
+            "Incanta la tua arma col fuoco",
+            "Getta la tua arma per incantarla col fuoco.",
+            () =>
+            {
+                if (GameManager.Giocatore.Arma == null)
+                {
+                    UI.MostraMessaggio("Non hai una arma.");
+                    return;
+                }
+                var arma = GameManager.Giocatore.Arma;
+                if(arma.Nome.Contains("fuoco", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    UI.MostraMessaggio("Arma già infuocata.");
+                    return;
+                }
+                else
+                {
+                    arma.stamina-=1;
+                    arma.Nome += "fuoco";
+                    UI.MostraMessaggio("La tua arma viene infuocata ed è più veloce da utilizzare. (-1 Stamina richiesta.)");
+                    return;
+                }
+            }
+        );
+        return s;
+    }
+
+    public static Stanza StanzaMercante(Coord posizione, string id)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = id,
+            Nome = "Mercante",
+            Descrizione = "Un uomo dall'aria sospetta è seduto dietro un tavolo colmo di mercanzie.",
+            Livello = 0,
+            Coordinate = posizione
+        };
+        s.IncontroMercante = true;
+        s.AggiungiAzione(
+            "parla al mercante",
+            "Parla al Mercante",
+            "Parla con il misterioso mercante e guarda la sua merce.",
+            () =>
+            {
+                var esplorazione = GameManager.StatoGioco as EsplorazioneStanza;
+                if (esplorazione is not null)
+                    GameManager.CambiaStato(new IncontroMercante { Contesto = esplorazione });
+            }
+        );
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_media() });
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Torta() });
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_recupero_totale() });
+        s.OggettiStanza.Add(new OggettoTrovabile
+        {
+            oggetto = new OggettoChiave
+            {
+                Nome = "Chiave del Boss",
+                Descrizione = "Una chiave pesante con incisioni oscure. Apre la porta verso la sala del boss (chiave_boss).",
+                Serratura = "chiave_boss",
+                ChiaveId = "chiave_boss",
+                IdSalvataggio = "chiave_boss_mercante"
+            }
+        });
+        return s;
+    }
+
+    public static Stanza StanzaMiniboss(Coord posizione, string id, Nemico miniboss)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = id,
+            Nome = "Stanza Miniboss",
+            Descrizione = "Una stanza sorvegliata da un potente guardiano. L'aria è densa di tensione.",
+            Livello = 0,
+            Coordinate = posizione,
+            NemicoStanza = miniboss
+        };
+        return s;
+    }
+
+    public static Stanza StanzaBoss(Coord posizione, string id)
+    {
+        Stanza s = new Stanza()
+        {
+            Id = id,
+            Nome = "Sala del Boss",
+            Descrizione = "La sala del trono del signore del dungeon. Un'aura maligna pervade l'ambiente.",
+            Livello = 0,
+            Coordinate = posizione,
+            NemicoStanza = Nemico.Boss()
+        };
+        return s;
+    }
+}
+
+public static class DizionarioMappa
+{
+    public static readonly Dictionary<string, Coord> Posizioni = new()
+    {
+        ["ingresso"]        = new Coord(0, -2),
+        ["cantina_S"]       = new Coord(0, -1),
+        ["armeria"]         = new Coord(0, 0),
+        ["cantina_N"]       = new Coord(0, 1),
+        ["mercante"]        = new Coord(0, 2),
+        ["boss"]            = new Coord(0, 3),
+        ["inceneritore_W"]  = new Coord(-1, 0),
+        ["inceneritore_E"]  = new Coord(1, 0),
+        ["mimic_SW"]        = new Coord(-1, -1),
+        ["tesoro_SE"]       = new Coord(1, -1),
+        ["tesoro_NW"]       = new Coord(-1, 1),
+        ["mimic_NE"]        = new Coord(1, 1),
+        ["curativa_SW"]     = new Coord(-2, -1),
+        ["curativa_NW"]     = new Coord(-2, 1),
+        ["curativa_NE"]     = new Coord(2, 1),
+        ["miniboss_SW"]     = new Coord(-2, -2),
+        ["miniboss_NW"]     = new Coord(-2, 2),
+        ["miniboss_NE"]     = new Coord(2, 2),
+        ["cantina_SE"]      = new Coord(2, -1),
+        ["teletrasporto"]   = new Coord(2, -2),
+    };
+
+    public static readonly Dictionary<string, string[]> Collegamenti = new()
+    {
+        ["ingresso"]        = new[] { "cantina_S" },
+        ["cantina_S"]       = new[] { "ingresso", "armeria", "mimic_SW", "tesoro_SE" },
+        ["mimic_SW"]        = new[] { "cantina_S", "curativa_SW", "inceneritore_W" },
+        ["curativa_SW"]     = new[] { "mimic_SW", "miniboss_SW" },
+        ["miniboss_SW"]     = new[] { "curativa_SW" },
+        ["tesoro_SE"]       = new[] { "cantina_S", "inceneritore_E", "cantina_SE" },
+        ["cantina_SE"]      = new[] { "tesoro_SE", "teletrasporto" },
+        ["teletrasporto"]   = new[] { "cantina_SE" },
+        ["armeria"]         = new[] { "cantina_S", "cantina_N", "inceneritore_W", "inceneritore_E" },
+        ["inceneritore_W"]  = new[] { "armeria", "mimic_SW", "tesoro_NW" },
+        ["inceneritore_E"]  = new[] { "armeria", "tesoro_SE", "mimic_NE" },
+        ["cantina_N"]       = new[] { "armeria", "tesoro_NW", "mimic_NE", "mercante" },
+        ["tesoro_NW"]       = new[] { "cantina_N", "inceneritore_W", "curativa_NW" },
+        ["curativa_NW"]     = new[] { "tesoro_NW", "miniboss_NW" },
+        ["miniboss_NW"]     = new[] { "curativa_NW" },
+        ["mimic_NE"]        = new[] { "cantina_N", "inceneritore_E", "curativa_NE" },
+        ["curativa_NE"]     = new[] { "mimic_NE", "miniboss_NE" },
+        ["miniboss_NE"]     = new[] { "curativa_NE" },
+        ["mercante"]        = new[] { "cantina_N", "boss" },
+        ["boss"]            = new[] { "mercante" },
+    };
 }
 
 public static class ListeStanze
@@ -331,49 +512,109 @@ public static class Mappa
 
     public static Stanza? Verso(Coord c) => Stanze.TryGetValue(c, out var s) ? s : null;
 
+    private static readonly Nemico[] PoolMiniboss = new[] { Nemico.MaestroArmi(), Nemico.Guardiano() };
+
+    //private static Stanza? PrendiStanza(string id) => 
+    public static Coord CoordinateIniziali;
+
+    public static readonly Dictionary<string, string> AssegnazioniMiniboss = new();
+
     public static void Inizializza()
     {
         Stanze.Clear();
+        AssegnazioniMiniboss.Clear();
         Logger.For("Mappa").LogDebug("Inizializzazione mappa");
 
-        var ingresso = Stanza.Ingresso(new Coord(0, 0));
-        var corridoio = Stanza.Corridoio(new Coord(0, 1));
-        var armeria = Stanza.Armeria(new Coord(1, 1));
-        var cantina = Stanza.Cantina(new Coord(-1, 0));
-        var tesoro = Stanza.StanzaDelTesoro(new Coord(0, 2));
-        var teletrasporto = Stanza.StanzaTeletrasporto(new Coord(-1, -1));
+        var rng = new Random();
 
-        // Registra stanze
-        foreach (var s in new[] { ingresso, corridoio, armeria, cantina, tesoro, teletrasporto })
-            Stanze[s.Coordinate] = s;
+        foreach (var (id, pos) in DizionarioMappa.Posizioni)
+        {
+            Stanza stanza = CreaStanza(id, pos, rng);
+            Stanze[pos] = stanza;
+        }
 
-        // Configura adiacenze + porte
-        // Ingresso (0,0) <-> Corridoio (0,1)   : libera
-        // Ingresso (0,0) <-> Cantina (-1,0)    : libera
-        // Corridoio (0,1) <-> Armeria (1,1)    : libera
-        // Corridoio (0,1) <-> Tesoro (0,2)     : bloccata, richiede "chiave_oro"
-        // Cantina (-1,0) <-> Teletrasporto (-1,-1) : libera
+        foreach (var (id, vicini) in DizionarioMappa.Collegamenti)
+        {
+            var da = Stanze[DizionarioMappa.Posizioni[id]];
+            foreach (var vicinoId in vicini)
+            {
+                var a = Stanze[DizionarioMappa.Posizioni[vicinoId]];
+                var dir = DirezioneVerso(da.Coordinate, a.Coordinate);
+                if (dir.HasValue && !da.Porte.ContainsKey(dir.Value))
+                {
+                    string? chiave = (id, vicinoId) switch
+                    {
+                        ("cantina_S", "mimic_SW") => "chiave_oro",
+                        ("mimic_SW", "cantina_S") => "chiave_oro",
+                        ("cantina_N", "mimic_NE") => "chiave_oro",
+                        ("mimic_NE", "cantina_N") => "chiave_oro",
+                        ("cantina_S", "tesoro_SE") => "chiave_oro",
+                        ("tesoro_SE", "cantina_S") => "chiave_oro",
+                        ("mercante", "boss") => "chiave_boss",
+                        ("boss", "mercante") => "chiave_boss",
+                        _ => null
+                    };
+                    Collega(da, a, dir.Value, chiave);
+                }
+            }
+        }
 
-        Collega(ingresso, corridoio, Direzione.Nord, null);
-        Collega(corridoio, ingresso, Direzione.Sud, null);
-
-        Collega(ingresso, cantina, Direzione.Ovest, null);
-        Collega(cantina, ingresso, Direzione.Est, null);
-
-        Collega(corridoio, armeria, Direzione.Est, null);
-        Collega(armeria, corridoio, Direzione.Ovest, null);
-
-        Collega(corridoio, tesoro, Direzione.Nord, "chiave_oro");
-        Collega(tesoro, corridoio, Direzione.Sud, "chiave_oro");
-
-        Collega(cantina, teletrasporto, Direzione.Sud, null);
-        Collega(teletrasporto, cantina, Direzione.Nord, null);
-
-        // Aggiunge le azioni di movimento in ogni stanza
         foreach (var s in Stanze.Values)
             AggiungiAzioniMovimento(s);
 
         Logger.For("Mappa").LogInformation("Mappa inizializzata: {N} stanze", Stanze.Count);
+    }
+
+    private static Stanza CreaStanza(string id, Coord pos, Random rng)
+    {
+        if(id == "ingresso") CoordinateIniziali=pos;
+        return id switch
+        {
+            "ingresso" => Stanza.Ingresso(pos, id),
+            "armeria" => Stanza.Armeria(pos, id),
+            string s when s.StartsWith("cantina_") => Stanza.Cantina(pos, id),
+            string s when s.StartsWith("tesoro_") => Stanza.StanzaDelTesoro(pos, id),
+            string s when s.StartsWith("mimic_") => Stanza.StanzaCombattimento(pos, Nemico.Mimic()),
+            "teletrasporto" => Stanza.StanzaTeletrasporto(pos, id),
+            string s when s.StartsWith("curativa_") => Stanza.StanzaCurativa(pos, id),
+            string s when s.StartsWith("miniboss_") => CreaMiniboss(id, pos, rng),
+            string s when s.StartsWith("inceneritore_") => Stanza.Inceneritore(pos, id),
+            "mercante" => Stanza.StanzaMercante(pos, id),
+            "boss" => Stanza.StanzaBoss(pos, id),
+            _ => throw new ArgumentException($"Tipo stanza sconosciuto: {id}")
+        };
+    }
+
+    private static Stanza CreaMiniboss(string id, Coord pos, Random rng)
+    {
+        var miniboss = PoolMiniboss[rng.Next(PoolMiniboss.Length)];
+        AssegnazioniMiniboss[id] = new NemicoCopiabile
+        {
+            NomeCompleto = miniboss.Nome
+        }.Serialize();
+        return Stanza.StanzaMiniboss(pos, id, miniboss);
+    }
+
+    public record struct NemicoCopiabile
+    {
+        public string NomeCompleto { get; init; }
+        public string Serialize() => NomeCompleto;
+        public static Nemico? DaString(string nome) => nome switch
+        {
+            "Maestro" => Nemico.MaestroArmi(),
+            "Guardiano Della Cripta" => Nemico.Guardiano(),
+            _ => null
+        };
+    }
+
+    private static Direzione? DirezioneVerso(Coord da, Coord a)
+    {
+        var delta = new Coord(a.X - da.X, a.Y - da.Y);
+        if (delta.X == 0 && delta.Y > 0) return Direzione.Nord;
+        if (delta.X == 0 && delta.Y < 0) return Direzione.Sud;
+        if (delta.X > 0 && delta.Y == 0) return Direzione.Est;
+        if (delta.X < 0 && delta.Y == 0) return Direzione.Ovest;
+        return null;
     }
 
     private static void Collega(Stanza da, Stanza a, Direzione dir, string? chiaveRichiesta)
@@ -385,8 +626,8 @@ public static class Mappa
         }
         else
         {
-            da.Porte[dir] = new Porta { Stato = StatoPorta.Chiusa};
-            a.Porte[dir.Opposta()] = new Porta { Stato = StatoPorta.Chiusa};
+            da.Porte[dir] = new Porta { Stato = StatoPorta.Chiusa };
+            a.Porte[dir.Opposta()] = new Porta { Stato = StatoPorta.Chiusa };
         }
     }
 

@@ -1,0 +1,22 @@
+{
+  "Stanza Iniziale": ["Cantina (Centro-Sud)"],
+  "Cantina (Centro-Sud)": ["Stanza Iniziale", "Armeria (Centro)", "Tesoreria Mimic (Sud-Ovest)", "Tesoreria (Sud-Est)"],
+  "Tesoreria Mimic (Sud-Ovest)": ["Cantina (Centro-Sud)", "Stanza Curativa (Sud-Ovest)", "Inceneritore (Ovest)"],
+  "Stanza Curativa (Sud-Ovest)": ["Tesoreria Mimic (Sud-Ovest)", "Miniboss (Sud-Ovest)"],
+  "Miniboss (Sud-Ovest)": ["Stanza Curativa (Sud-Ovest)"],
+  "Tesoreria (Sud-Est)": ["Cantina (Centro-Sud)", "Inceneritore (Est)", "Cantina (Sud-Est)"],
+  "Cantina (Sud-Est)": ["Tesoreria (Sud-Est)", "Stanza Teletrasporto (T)"],
+  "Stanza Teletrasporto (T)": ["Cantina (Sud-Est)"],
+  "Armeria (Centro)": ["Cantina (Centro-Sud)", "Cantina (Centro-Nord)", "Inceneritore (Ovest)", "Inceneritore (Est)"],
+  "Inceneritore (Ovest)": ["Armeria (Centro)", "Tesoreria Mimic (Sud-Ovest)", "Tesoreria (Nord-Ovest)"],
+  "Inceneritore (Est)": ["Armeria (Centro)", "Tesoreria (Sud-Est)", "Tesoreria Mimic (Nord-Est)"],
+  "Cantina (Centro-Nord)": ["Armeria (Centro)", "Tesoreria (Nord-Ovest)", "Tesoreria Mimic (Nord-Est)", "Mercante"],
+  "Tesoreria (Nord-Ovest)": ["Cantina (Centro-Nord)", "Inceneritore (Ovest)", "Stanza Curativa (Nord-Ovest)"],
+  "Stanza Curativa (Nord-Ovest)": ["Tesoreria (Nord-Ovest)", "Miniboss (Nord-Ovest)"],
+  "Miniboss (Nord-Ovest)": ["Stanza Curativa (Nord-Ovest)"],
+  "Tesoreria Mimic (Nord-Est)": ["Cantina (Centro-Nord)", "Inceneritore (Est)", "Stanza Curativa (Nord-Est)"],
+  "Stanza Curativa (Nord-Est)": ["Tesoreria Mimic (Nord-Est)", "Miniboss (Nord-Est)"],
+  "Miniboss (Nord-Est)": ["Stanza Curativa (Nord-Est)"],
+  "Mercante": ["Cantina (Centro-Nord)", "Boss"],
+  "Boss": ["Mercante"]
+}
