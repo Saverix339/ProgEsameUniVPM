@@ -279,13 +279,13 @@ public class Giocatore : IDannegiabile
     }
     public static void UsaConsumabile(EsplorazioneStanza contesto, Nemico nem)
     {
-        GameManager.Giocatore.Inventario.TryPeek(out var ogg)
+        GameManager.Giocatore.Inventario.TryPeek(out var ogg);
         if(ogg is Consumabili)
         {
             Consumabili consumabile = (Consumabili)GameManager.Giocatore.Inventario.Pop();
             Logger.Get<Giocatore>().LogInformation("Consumabile usato: {Oggetto} (HP: {HP}, Stam: {Stam})", consumabile.Nome, GameManager.Giocatore.PuntiVita, GameManager.Giocatore.Stamina);
             consumabile.Usa();
-        }
+        };
     }
 }
 

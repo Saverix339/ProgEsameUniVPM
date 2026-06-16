@@ -35,8 +35,15 @@ public static class ManagerDirezioni
     public static string Testo(this Direzione d) => d.ToString().ToLowerInvariant();
 }
 
+/// <summary>
+/// Stato delle porte che viene salvato nel file di salvataggio.
+/// </summary>
 public enum StatoPorta { Aperta, Chiusa, Bloccata }
 
+/// <summary>
+/// Classe per istanziare porte tra le stanze, 
+/// possono richiedere una chiave per essere aperte, usano l'ID della chiave.
+/// </summary>
 public class Porta
 {
     public StatoPorta Stato { get; set; } = StatoPorta.Aperta;
@@ -80,6 +87,9 @@ public class Stanza
 
     public List<OggettoTrovabile> OggettiStanza { get; } = new();
 
+    /// <summary>
+    /// Livello Per Sviluppi successivi. Al momento solo livello 0.
+    /// </summary>
     public required int Livello { get; init; }
 
     public Dictionary<string, Azione> Azioni { get; } = new();
