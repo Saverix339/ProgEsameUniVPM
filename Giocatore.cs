@@ -574,6 +574,8 @@ public static class JsonSalvataggio
         public List<OggettiCadutiFlag> OggettiCaduti {get; set;} = new();
         /// <summary>Lista degli ID delle stanze i cui nemici sono stati sconfitti.</summary>
         public List<string> NemiciRimossi {get;set;} = new();
+        /// <summary>Lista degli ID delle stanze in cui l'oro è già stato raccolto.</summary>
+        public List<string> StanzeOroRaccolto {get;set;} = new();
         /// <summary>Dizionario che associa ID stanza al nome del miniboss assegnato.</summary>
         public Dictionary<string, string> MinibossAssegnati {get; set;} = new();
     }
@@ -618,6 +620,9 @@ public static class JsonSalvataggio
             if (s.NemicoSconfitto)
                 dto.NemiciRimossi.Add(s.Id);
 
+            if (s.OroRaccolto)
+                dto.StanzeOroRaccolto.Add(s.Id);
+
             foreach (var oggst in s.OggettiStanza)
             {
                 if (oggst.oggetto.IdSalvataggio.StartsWith("caduto_"))
@@ -658,6 +663,16 @@ public static class JsonSalvataggio
             {
                 stanza.NemicoSconfitto = true;
                 stanza.NemicoStanza = null;
+            }
+        }
+
+        foreach (var idStanza in dto.StanzeOroRaccolto)
+        {
+            var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == idStanza);
+            if (stanza is not null)
+            {
+                stanza.OroRaccolto = true;
+                stanza.RimuoviAzione("raccogli");
             }
         }
 

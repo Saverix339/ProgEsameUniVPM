@@ -87,7 +87,7 @@ class Program
     /// <param name="risultato">Tipo di risultato: <see cref="RisultatoAzione.ComandoSpeciale"/> se è stato eseguito un comando globale, <c>null</c> altrimenti.</param>
     private static void ControllaComando(string input, out RisultatoAzione? risultato)
     {
-        if(input is "esci" or "exit" or "quit")
+        if(input is "exit" or "quit")
         {
             Logger.Get<Program>().LogInformation("Uscita dal gioco");
             Environment.Exit(1);
@@ -222,12 +222,7 @@ public class EsplorazioneStanza : IStato
         string id = input.ToLowerInvariant().Trim();
         if (string.IsNullOrEmpty(id))
             return RisultatoAzione.Errore;
-        if (!_stanza.Azioni.TryGetValue(id, out var azione))
-        {
-            Logger.Get<EsplorazioneStanza>().LogWarning("Azione non riconosciuta: {Input}", id);
-            UI.MostraErrore($"Azione \"{id}\" non riconosciuta.");
-            return RisultatoAzione.Errore;
-        }
+        
         if (id == "getta" || id == "lascia" || id == "drop")
         {
             if (GameManager.Giocatore.Inventario.Count == 0)
@@ -254,6 +249,12 @@ public class EsplorazioneStanza : IStato
                 UI.MostraMessaggio($"Ultimo oggetto: {ultimo.Nome} - {ultimo.Descrizione}");
             }
             return RisultatoAzione.Continua;
+        }
+        if (!_stanza.Azioni.TryGetValue(id, out var azione))
+        {
+            Logger.Get<EsplorazioneStanza>().LogWarning("Azione non riconosciuta: {Input}", id);
+            UI.MostraErrore($"Azione \"{id}\" non riconosciuta.");
+            return RisultatoAzione.Errore;
         }
         Logger.Get<EsplorazioneStanza>().LogDebug("Eseguita azione: {Azione}", id);
         azione.Esegui.Invoke();
@@ -342,7 +343,7 @@ public class Combattimento : IStato
         {
             try
             {
-                var scelta = Avversario.ScegliAbilita();
+                var scelta = Avversario.ScegliAbilita(GameManager.Giocatore);
                 Logger.Get<Combattimento>().LogDebug("Nemico usa: {Abilita}", scelta.Nome);
                 scelta.Esegui(Avversario, GameManager.Giocatore);
             }

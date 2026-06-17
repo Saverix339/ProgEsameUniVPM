@@ -152,6 +152,9 @@ public class Stanza
     /// <summary>Indica se il nemico della stanza è già stato sconfitto.</summary>
     public bool NemicoSconfitto = false;
 
+    /// <summary>Indica se l'oro della stanza è già stato raccolto dal giocatore (persiste nei salvataggi).</summary>
+    public bool OroRaccolto = false;
+
     /// <summary>
     /// Aggiunge un'azione alla stanza.
     /// </summary>
@@ -235,7 +238,18 @@ public class Stanza
             "raccogli",
             "Raccogli Tesoro",
             "Raccogli tutto l'oro e le gemme presenti nella stanza.",
-            () => { GameManager.Giocatore.AggiungiOro(20); UI.MostraMessaggio("Hai raccolto 20 oro!"); }
+            () =>
+            {
+                if (s.OroRaccolto)
+                {
+                    UI.MostraMessaggio("Hai già raccolto tutto l'oro qui.");
+                    return;
+                }
+                s.OroRaccolto = true;
+                s.RimuoviAzione("raccogli");
+                GameManager.Giocatore.AggiungiOro(20);
+                UI.MostraMessaggio("Hai raccolto 20 oro!");
+            }
         );
         return s;
     }

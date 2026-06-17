@@ -32,8 +32,8 @@ public class Oggetto
 
     /// <summary>Indica se l'oggetto funge da chiave.</summary>
     public bool isChiave => ChiaveId.Length > 0;
-    /// <summary>Valore in oro dell'oggetto (per il mercante).</summary>
-    public int Valore = 0;
+    /// <summary>Valore in oro dell'oggetto. Virtuale: su <see cref="Consumabili"/> riflette <see cref="Consumabili.prezzo"/>.</summary>
+    public virtual int Valore { get; set; } = 0;
 }
 
 /// <summary>
@@ -240,6 +240,10 @@ public class Consumabili : Oggetto
 
     /// <summary>Prezzo in oro se acquistato dal mercante, o <c>null</c> se non acquistabile.</summary>
     public int? prezzo;
+
+    /// <summary>Valore in oro del consumabile. Derivato da <see cref="prezzo"/>, non serializzato.</summary>
+    [JsonIgnore]
+    public override int Valore => prezzo ?? 0;
 
     /// <summary>Percentuale di punti vita massimi da recuperare (0.0 - 1.0).</summary>
     public float recuperoPV = 0f;

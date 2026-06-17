@@ -227,14 +227,22 @@ public class Nemico : IDannegiabile
 
     /// <summary>
     /// Seleziona casualmente un'abilità da usare, pesata in base a <see cref="AbilitaNemico.PesoProbabilita"/>.
+    /// Esclude automaticamente le abilità la cui <see cref="AbilitaNemico.CondizioneSpeciale"/> non è soddisfatta.
     /// </summary>
+    /// <param name="giocatore">Il giocatore da passare alla valutazione delle condizioni delle abilità.</param>
     /// <returns>L'abilità selezionata.</returns>
-    /// <exception cref="Exception">Se nessuna abilità viene selezionata (non dovrebbe accadere).</exception>
-    public AbilitaNemico ScegliAbilita()
+    /// <exception cref="Exception">Se nessuna abilità è utilizzabile.</exception>
+    public AbilitaNemico ScegliAbilita(Giocatore giocatore)
     {
         var rand = new Random();
-        int risultato = rand.Next(totPeso +1);
-        foreach(var a in Abilita)
+        var utilizzabili = Abilita
+            .Where(a => a.CondizioneSpeciale == null || a.CondizioneSpeciale(giocatore, this))
+            .ToList();
+        if (utilizzabili.Count == 0)
+            throw new Exception("Nessuna abilità utilizzabile");
+        int pesoTot = utilizzabili.Sum(a => a.PesoProbabilita);
+        int risultato = rand.Next(pesoTot + 1);
+        foreach(var a in utilizzabili)
         {
             risultato -= a.PesoProbabilita;
             if(risultato<=0) return a;
