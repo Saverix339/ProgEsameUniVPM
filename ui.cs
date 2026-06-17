@@ -128,8 +128,8 @@ public static class UI
         {
             Console.WriteLine($"  {azione.Id,-20} - {azione.Descrizione}");
         }
-        Console.WriteLine("drop - fai cadere l'ultimo oggetto messo nell'inventario.");
-        Console.WriteLine("guarda inventario - guarda l'ultimo oggetto messo");
+        Console.WriteLine("  getta               - fai cadere l'ultimo oggetto dell'inventario");
+        Console.WriteLine("  inventario          - guarda l'ultimo oggetto dell'inventario");
         Console.WriteLine();
     }
 
@@ -175,9 +175,18 @@ public static class UI
         Console.WriteLine($"TURNO DI {g.Nome.ToUpper()}");
         Console.WriteLine($"HP: {g.PuntiVita}/{g.PuntiVitaMax}  Stamina: {g.Stamina}/{g.StaminaMax}");
         Console.WriteLine($"Nemico: {nemico.Nome} (HP: {nemico.Salute}/{nemico.SaluteMax})");
+        if (g.Inventario.Count > 0)
+        {
+            var ultimo = g.Inventario.Peek();
+            Console.WriteLine($"Inventario: {ultimo.Nome} - {ultimo.Descrizione}");
+        }
         Console.WriteLine("\nAzioni disponibili:");
         Console.WriteLine("  attacca - attacca il nemico");
-        Console.WriteLine("  abilita  - usa l'abilità dell'arma");
+        if (g.Arma?.AbilitaArma != null){
+            Console.WriteLine($"  abilita  - {g.Arma.AbilitaArma.Nome} (costo: {g.Arma.AbilitaArma.CostoStamina} stamina)");
+            Console.WriteLine($"    {g.Arma.AbilitaArma.Descrizione}");}
+        else
+            Console.WriteLine("  abilita  - nessuna abilità disponibile");
         Console.WriteLine("  usa      - usa un consumabile");
         Console.WriteLine("  scappa   - tenta di fuggire dal combattimento");
     }

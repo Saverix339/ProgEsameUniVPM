@@ -228,7 +228,7 @@ public class EsplorazioneStanza : IStato
             UI.MostraErrore($"Azione \"{id}\" non riconosciuta.");
             return RisultatoAzione.Errore;
         }
-        if (id == "getta" || id == "lascia")
+        if (id == "getta" || id == "lascia" || id == "drop")
         {
             if (GameManager.Giocatore.Inventario.Count == 0)
             {
@@ -239,6 +239,19 @@ public class EsplorazioneStanza : IStato
             {
                 Logger.Get<EsplorazioneStanza>().LogDebug("Oggetto lasciato a terra");
                 GameManager.Giocatore.RimuoviOggettoInventario();
+            }
+            return RisultatoAzione.Continua;
+        }
+        if (id == "inventario" || id == "guarda inventario" || id == "guarda")
+        {
+            if (GameManager.Giocatore.Inventario.Count == 0)
+            {
+                UI.MostraMessaggio("Il tuo inventario è vuoto.");
+            }
+            else
+            {
+                var ultimo = GameManager.Giocatore.Inventario.Peek();
+                UI.MostraMessaggio($"Ultimo oggetto: {ultimo.Nome} - {ultimo.Descrizione}");
             }
             return RisultatoAzione.Continua;
         }

@@ -111,7 +111,7 @@ public class Giocatore : IDannegiabile
     /// <param name="pvMax">Punti vita massimi (default: 20).</param>
     /// <param name="staminaMax">Stamina massima (default: 10).</param>
     [JsonConstructor]
-    public Giocatore(string nome, int pvMax = 20, int staminaMax = 10)
+    public Giocatore(string nome, int pvMax = 100, int staminaMax = 20)
     {
         Nome = nome;
         PuntiVita = pvMax;
@@ -162,7 +162,7 @@ public class Giocatore : IDannegiabile
         PuntiVita -= dannoEffettivo;
         Logger.Get<Giocatore>().LogDebug("Giocatore subisce {Danno} danni (difesa: {Difesa}, effettivi: {Effettivo}) (HP: {HP}/{Max})", danno, Difesa, dannoEffettivo, PuntiVita, PuntiVitaMax);
         UI.MostraDanno(GameManager.Giocatore.Nome, dannoEffettivo);
-        if (PuntiVita < 0)
+        if (PuntiVita <= 0)
         {
             Logger.Get<Giocatore>().LogInformation("GAME OVER: {Nome} è morto", Nome);
             UI.GameOver(this);
