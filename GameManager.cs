@@ -13,6 +13,8 @@ public static class GameManager
     public static Stanza StanzaCorrente {get; set;} = Mappa.Verso(new Coord(0, 0)) ?? Stanza.Ingresso(new Coord(0, 0));
     /// <summary>Lo stato attivo della state machine di gioco (es. esplorazione, combattimento, mercante).</summary>
     public static IStato? StatoGioco = new CreazionePersonaggio();
+    /// <summary>Ultima direzione di movimento del giocatore. Usata in caso di fuga dal combattimento per tornare indietro.</summary>
+    public static Direzione? UltimaDirezione;
 
     /// <summary>
     /// Metodo placeholder per avanzamento (non implementato).
@@ -43,6 +45,7 @@ public static class GameManager
     /// <param name="direzione">Direzione verso cui spostarsi (Nord, Sud, Est, Ovest).</param>
     public static void Sposta(Direzione direzione)
     {
+        UltimaDirezione = direzione;
         var log = Logger.For("GameManager");
         var corrente = StanzaCorrente;
         var target = Mappa.Verso(corrente.Coordinate + direzione.ToDelta());

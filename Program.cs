@@ -391,7 +391,10 @@ public class Combattimento : IStato
                     if (UI.ChiediFuga())
                     {
                         Logger.Get<Combattimento>().LogInformation("Fuga riuscita da {Nemico}", Avversario.Nome);
-                        GameManager.CambiaStato(contestoCombattimento);
+                        if (GameManager.UltimaDirezione.HasValue)
+                            GameManager.Sposta(GameManager.UltimaDirezione.Value.Opposta());
+                        else
+                            GameManager.CambiaStato(contestoCombattimento);
                         return RisultatoAzione.Continua;
                     }
                     Logger.Get<Combattimento>().LogDebug("Fuga fallita");
@@ -480,9 +483,19 @@ public class IncontroMercante : IStato
         {
             var carrello = Vendita.Find(x => x.oggetto.Nome.Equals(input, StringComparison.CurrentCultureIgnoreCase));
             if (carrello is null) throw new ArgumentNullException("Oggetto");
-            if (!GameManager.Giocatore.AggiungiOggettoInventario(carrello.oggetto))
-                return RisultatoAzione.Errore;
-            Logger.Get<IncontroMercante>().LogInformation("Acquistato: {Oggetto}", carrello.oggetto.Nome);
+            if (carrello.oggetto is OggettoChiave chiave)
+            {
+                GameManager.Giocatore.DaiChiave(chiave.Serratura);
+                UI.MostraMessaggio($"Hai acquistato: {chiave.Nome}. Aggiunta alle tue chiavi.");
+                Logger.Get<IncontroMercante>().LogInformation("Acquistata chiave: {Chiave} (serratura: {Serratura})", chiave.Nome, chiave.Serratura);
+            }
+            else
+            {
+                if (!GameManager.Giocatore.AggiungiOggettoInventario(carrello.oggetto))
+                    return RisultatoAzione.Errore;
+                UI.MostraMessaggio($"Hai acquistato: {carrello.oggetto.Nome}.");
+                Logger.Get<IncontroMercante>().LogInformation("Acquistato: {Oggetto}", carrello.oggetto.Nome);
+            }
             Vendita.Remove(carrello);
             if (Vendita.Count == 0)
             {

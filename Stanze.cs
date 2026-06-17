@@ -85,8 +85,8 @@ public class Azione
     public required string Id { get; init; }
     /// <summary>Nome descrittivo dell'azione.</summary>
     public required string Nome { get; init; }
-    /// <summary>Descrizione dettagliata dell'azione.</summary>
-    public required string Descrizione { get; init; }
+    /// <summary>Descrizione dettagliata dell'azione. Modificabile per aggiornamenti a runtime (es. stanza curativa esaurita).</summary>
+    public required string Descrizione { get; set; }
 
     /// <summary>Callback eseguito quando l'azione viene attivata.</summary>
     public Action Esegui { get; init; } = () => { };
@@ -155,6 +155,9 @@ public class Stanza
     /// <summary>Indica se l'oro della stanza è già stato raccolto dal giocatore (persiste nei salvataggi).</summary>
     public bool OroRaccolto = false;
 
+    /// <summary>Indica se la stanza curativa è già stata usata (persiste nei salvataggi).</summary>
+    public bool CurativaUsata = false;
+
     /// <summary>
     /// Aggiunge un'azione alla stanza.
     /// </summary>
@@ -193,6 +196,74 @@ public class Stanza
     }
 
     /// <summary>
+    /// Aggiunge un oggetto a <see cref="OggettiStanza"/> e crea automaticamente un'azione "raccogli"
+    /// identificata dall'<see cref="Oggetto.IdSalvataggio"/>. Se l'oggetto viene raccolto,
+    /// l'azione si auto-rimuove.
+    /// </summary>
+    /// <param name="o">Oggetto da registrare. Deve avere <see cref="Oggetto.IdSalvataggio"/> non vuoto.</param>
+    public void AggiungiOggettoRaccoglibile(Oggetto o)
+    {
+        if (string.IsNullOrEmpty(o.IdSalvataggio))
+            throw new ArgumentException("L'oggetto deve avere un IdSalvataggio per essere registrato.", nameof(o));
+        OggettiStanza.Add(new OggettoTrovabile { oggetto = o });
+        CreaAzioneRaccogli(o);
+    }
+
+    /// <summary>
+    /// Crea l'azione "raccogli" per un oggetto già presente in <see cref="OggettiStanza"/>.
+    /// </summary>
+    private void CreaAzioneRaccogli(Oggetto o)
+    {
+        string idAzione = $"raccogli {o.IdSalvataggio}";
+        if (Azioni.ContainsKey(idAzione)) return;
+        string idSalvataggio = o.IdSalvataggio;
+        AggiungiAzione(
+            idAzione,
+            $"Raccogli {o.Nome}",
+            $"Raccogli {o.Nome} da terra.",
+            () =>
+            {
+                var trovato = OggettiStanza.FirstOrDefault(ot => ot.oggetto.IdSalvataggio == idSalvataggio);
+                if (trovato is null) { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); return; }
+                var oggetto = trovato.oggetto;
+                if (oggetto is Armi arma)
+                {
+                    GameManager.Giocatore.EquipaggiaArma(arma);
+                    UI.MostraMessaggio($"Hai equipaggiato: {arma.Nome}.");
+                }
+                else if (oggetto is OggettoChiave chiave)
+                {
+                    GameManager.Giocatore.DaiChiave(chiave.Serratura);
+                    UI.MostraMessaggio($"Hai raccolto: {chiave.Nome} (apre serrature {chiave.Serratura}).");
+                }
+                else
+                {
+                    if (!GameManager.Giocatore.AggiungiOggettoInventario(oggetto)) return;
+                    UI.MostraMessaggio($"Hai raccolto: {oggetto.Nome}.");
+                }
+                OggettiStanza.Remove(trovato);
+                RimuoviAzione(idAzione);
+            }
+        );
+    }
+
+    /// <summary>
+    /// Rigenera tutte le azioni "raccogli" in base agli oggetti attualmente presenti in <see cref="OggettiStanza"/>.
+    /// Chiamato dopo il caricamento di un salvataggio per sincronizzare le azioni con lo stato della lista.
+    /// </summary>
+    public void RipristinaAzioniRaccogli()
+    {
+        if (IncontroMercante) return;
+        foreach (var kvp in Azioni.Where(a => a.Key.StartsWith("raccogli ")).ToList())
+            Azioni.Remove(kvp.Key);
+        foreach (var ot in OggettiStanza)
+        {
+            if (!string.IsNullOrEmpty(ot.oggetto.IdSalvataggio))
+                CreaAzioneRaccogli(ot.oggetto);
+        }
+    }
+
+    /// <summary>
     /// Crea la stanza d'ingresso del dungeon.
     /// </summary>
     /// <param name="posizione">Coordinate della stanza.</param>
@@ -208,13 +279,9 @@ public class Stanza
             Livello = 0,
             Coordinate = posizione
         };
-        s.AggiungiAzione(
-            "raccogli torcia",
-            "Raccogli Torcia",
-            "Raccogli una torcia appoggiata vicino all'ingresso.",
-            () => { UI.MostraMessaggio("Raccogli la torcia. La stanza si illumina."); }
-        );
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_base() });
+        var pozioneIngresso = Consumabili.Pozione_curativa_base();
+        pozioneIngresso.IdSalvataggio = "pozione_ingresso";
+        s.AggiungiOggettoRaccoglibile(pozioneIngresso);
         return s;
     }
 
@@ -304,36 +371,18 @@ public class Stanza
             Livello = 0,
             Coordinate = posizione
         };
-        s.AggiungiAzione(
-            "raccogli pozione",
-            "Raccogli Pozione",
-            "Raccogli una pozione curativa dalla mensola.",
-            () => { if (GameManager.Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base())) UI.MostraMessaggio("Hai raccolto una pozione curativa!"); }
-        );
-        s.AggiungiAzione(
-            "raccogli chiave",
-            "Raccogli Chiave",
-            "Raccogli la chiave dorata nell'angolo.",
-            () =>
-            {
-                var trovata = s.OggettiStanza.FirstOrDefault(o => o.oggetto.ChiaveId == "chiave_oro");
-                if (trovata is null) { UI.MostraErrore("Non c'è nessuna chiave qui."); return; }
-                GameManager.Giocatore.Raccogli(trovata.oggetto);
-                s.OggettiStanza.Remove(trovata);
-                s.RimuoviAzione("raccogli chiave");
-            }
-        );
-        s.OggettiStanza.Add(new OggettoTrovabile
+        var pozioneCantina = Consumabili.Pozione_curativa_base();
+        pozioneCantina.IdSalvataggio = "pozione_cantina";
+        s.AggiungiOggettoRaccoglibile(pozioneCantina);
+        var chiaveOro = new OggettoChiave
         {
-            oggetto = new OggettoChiave
-            {
-                Nome = "Chiave d'Oro",
-                Descrizione = "Una chiave per la serratura (chiave_oro).",
-                Serratura = "chiave_oro",
-                ChiaveId = "chiave_oro",
-                IdSalvataggio = "chiave_oro_cantina"
-            }
-        });
+            Nome = "Chiave d'Oro",
+            Descrizione = "Una chiave per la serratura (chiave_oro).",
+            Serratura = "chiave_oro",
+            ChiaveId = "chiave_oro",
+            IdSalvataggio = "chiave_oro_cantina"
+        };
+        s.AggiungiOggettoRaccoglibile(chiaveOro);
         return s;
     }
 
@@ -436,9 +485,17 @@ public class Stanza
         s.AggiungiAzione(
             "riposati",
             "Riposati",
-            "Riposati nella luce curativa e recupera le energie.",
+            s.CurativaUsata
+                ? "La luce si è affievolita. Non puoi più riposarti qui."
+                : "Riposati nella luce curativa e recupera le energie.",
             () =>
             {
+                if (s.CurativaUsata)
+                {
+                    UI.MostraMessaggio("La luce curativa si è ormai esaurita.");
+                    return;
+                }
+                s.CurativaUsata = true;
                 GameManager.Giocatore.Cura(GameManager.Giocatore.PuntiVitaMax);
                 GameManager.Giocatore.CambiaStamina(GameManager.Giocatore.StaminaMax);
                 UI.MostraMessaggio("Ti sei riposato e hai recuperato tutte le energie!");
@@ -521,9 +578,15 @@ public class Stanza
                     GameManager.CambiaStato(new IncontroMercante { Contesto = esplorazione });
             }
         );
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_media() });
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Torta() });
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_recupero_totale() });
+        var pozioneMedia = Consumabili.Pozione_curativa_media();
+        pozioneMedia.IdSalvataggio = "pozione_media_mercante";
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = pozioneMedia });
+        var torta = Consumabili.Torta();
+        torta.IdSalvataggio = "torta_mercante";
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = torta });
+        var pozioneTotale = Consumabili.Pozione_recupero_totale();
+        pozioneTotale.IdSalvataggio = "pozione_totale_mercante";
+        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = pozioneTotale });
         s.OggettiStanza.Add(new OggettoTrovabile
         {
             oggetto = new OggettoChiave

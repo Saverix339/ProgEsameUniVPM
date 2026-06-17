@@ -274,29 +274,7 @@ public class Giocatore : IDannegiabile
     /// <param name="o">Oggetto da far cadere.</param>
     public static void FaiCadereOggetto(Stanza s, Oggetto o)
     {
-        s.OggettiStanza.Add(new OggettoTrovabile { oggetto = o });
-        string idAzione = $"raccogli {o.Nome.ToLower()}";
-        if (!s.Azioni.ContainsKey(idAzione))
-        {
-            s.AggiungiAzione(
-                idAzione,
-                $"Raccogli {o.Nome}",
-                $"Raccogli {o.Nome} da terra.",
-                () =>
-                {
-                    var daRaccogliere = s.OggettiStanza.FirstOrDefault(x => x.oggetto.Nome == o.Nome);
-                    if (daRaccogliere != null)
-                    {
-                        GameManager.Giocatore.Raccogli(daRaccogliere.oggetto);
-                        s.OggettiStanza.Remove(daRaccogliere);
-                    }
-                    if (!s.OggettiStanza.Any(x => x.oggetto.Nome == o.Nome))
-                    {
-                        s.RimuoviAzione(idAzione);
-                    }
-                }
-            );
-        }
+        s.AggiungiOggettoRaccoglibile(o);
     }
 
     /// <summary>
@@ -621,6 +599,8 @@ public static class JsonSalvataggio
         public List<string> NemiciRimossi {get;set;} = new();
         /// <summary>Lista degli ID delle stanze in cui l'oro è già stato raccolto.</summary>
         public List<string> StanzeOroRaccolto {get;set;} = new();
+        /// <summary>Lista degli ID delle stanze curative già usate.</summary>
+        public List<string> StanzeCurativaUsata {get;set;} = new();
         /// <summary>Dizionario che associa ID stanza al nome del miniboss assegnato.</summary>
         public Dictionary<string, string> MinibossAssegnati {get; set;} = new();
     }
@@ -667,6 +647,9 @@ public static class JsonSalvataggio
 
             if (s.OroRaccolto)
                 dto.StanzeOroRaccolto.Add(s.Id);
+
+            if (s.CurativaUsata)
+                dto.StanzeCurativaUsata.Add(s.Id);
 
             foreach (var oggst in s.OggettiStanza)
             {
@@ -721,6 +704,17 @@ public static class JsonSalvataggio
             }
         }
 
+        foreach (var idStanza in dto.StanzeCurativaUsata)
+        {
+            var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == idStanza);
+            if (stanza is not null)
+            {
+                stanza.CurativaUsata = true;
+                if (stanza.Azioni.TryGetValue("riposati", out var azione))
+                    azione.Descrizione = "La luce si è affievolita. Non puoi più riposarti qui.";
+            }
+        }
+
         foreach (var p in dto.StatoPorte)
         {
             var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == p.Stanza);
@@ -743,11 +737,10 @@ public static class JsonSalvataggio
         {
             var stanza = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == caduto.IdStanza);
             if (stanza is not null)
-            {
                 stanza.OggettiStanza.Add(new OggettoTrovabile { oggetto = caduto.Oggetto, IsTrovabile = true });
-                Giocatore.FaiCadereOggetto(stanza, caduto.Oggetto);
-            }
         }
+        foreach (var s in Mappa.Stanze.Values)
+            s.RipristinaAzioniRaccogli();
         var corrente = Mappa.Stanze.Values.FirstOrDefault(s => s.Id == dto.StanzaCorrenteId);
         if (corrente is not null)
         {

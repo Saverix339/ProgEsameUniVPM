@@ -70,7 +70,7 @@ public class OggettoChiave : Oggetto
 public class Armi : Oggetto
 {
     /// <summary>Potenza base dell'arma (danno per attacco).</summary>
-    public int potenza=2;
+    public int potenza=15;
     /// <summary>Costo in stamina per usare l'abilità dell'arma.</summary>
     public int stamina=2;
 
@@ -120,9 +120,9 @@ public class Armi : Oggetto
         Armi s = new()
         {
             Nome="Spada",
-            Descrizione="attacco base fa meno danno ma non spreca stamina e si"+
-            "vuole danno critico si spreca stamina",
-            potenza=2,
+            Descrizione="attacco base fa meno danno ma non spreca stamina."+
+            "Attacco critico usa più stamina",
+            potenza=15,
             stamina=2,
             AbilitaArma = new ColpoPotente()
         };
@@ -136,9 +136,8 @@ public class Armi : Oggetto
         Armi s = new()
         {
             Nome="Scudo",
-            Descrizione="riflette i colpi diretti a costo di stamina"+
-            "e recupera stamina difendendosi con lo scudo ma subisce meno danni riflette danno ",
-            potenza=1,
+            Descrizione="riflette i colpi diretti a costo di stamina",
+            potenza=15,
             stamina=3,
             AbilitaArma = new RiflettiScudo()
         };
@@ -152,9 +151,8 @@ public class Armi : Oggetto
         Armi s = new()
         {
             Nome="Coltello",
-            Descrizione="attacchi base con possibilità bassa di attacare più di 1 volta per turno no stamina"+
-             "e se si vuole fare bleed usi stamina ma con il bleed attacchi 1 volta",
-            potenza=1,
+            Descrizione="abilità infligge sanguinamento. Meno danno ma anche meno stamina.",
+            potenza=12,
             stamina=1,
             AbilitaArma = new Sanguinamento()
         };
