@@ -48,3 +48,33 @@
 [2026-06-17 15:38:26] [DEBUG] GameManager          Transizione stato: Combattimento -> EsplorazioneStanza
 [2026-06-17 15:38:26] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Stanza con Nemico (Livello 0)
 [2026-06-17 15:38:43] [WARNING] ProgEsameUniVPM.EsplorazioneStanza Azione non riconosciuta: attacca
+[2026-06-17 17:17:05] [INFORMATION] ProgEsameUniVPM.Program ====INIZIO GIOCO====
+[2026-06-17 17:17:05] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> CreazionePersonaggio
+[2026-06-17 17:17:21] [INFORMATION] ProgEsameUniVPM.CreazionePersonaggio Personaggio creato: Saverio
+[2026-06-17 17:17:25] [INFORMATION] ProgEsameUniVPM.CreazionePersonaggio Arma iniziale scelta: Spada
+[2026-06-17 17:17:25] [DEBUG] Mappa                Inizializzazione mappa
+[2026-06-17 17:17:25] [INFORMATION] Mappa                Mappa inizializzata: 20 stanze
+[2026-06-17 17:17:25] [INFORMATION] ProgEsameUniVPM.Program Nuova partita iniziata. Stanza iniziale: Ingresso
+[2026-06-17 17:17:25] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> EsplorazioneStanza
+[2026-06-17 17:17:25] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Ingresso (Livello 0)
+[2026-06-17 17:17:54] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: vai nord
+[2026-06-17 17:17:54] [INFORMATION] GameManager          Spostamento: Ingresso -> Cantina (Nord)
+[2026-06-17 17:17:54] [DEBUG] Giocatore            Stamina cambiata di 2 (ora: 10/10)
+[2026-06-17 17:17:54] [DEBUG] GameManager          Transizione stato: EsplorazioneStanza -> EsplorazioneStanza
+[2026-06-17 17:17:54] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Cantina (Livello 0)
+[2026-06-17 17:18:25] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: raccogli chiave
+[2026-06-17 17:18:25] [INFORMATION] Giocatore            Chiave raccolta: Chiave d'Oro (serratura: chiave_oro)
+[2026-06-17 17:18:32] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: raccogli pozione
+[2026-06-17 17:18:54] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: vai est
+[2026-06-17 17:18:54] [INFORMATION] GameManager          Porta sbloccata con chiave chiave_oro verso Est
+[2026-06-17 17:18:54] [INFORMATION] GameManager          Spostamento: Cantina -> Stanza del Tesoro (Est)
+[2026-06-17 17:18:54] [DEBUG] Giocatore            Stamina cambiata di 2 (ora: 10/10)
+[2026-06-17 17:18:54] [DEBUG] GameManager          Transizione stato: EsplorazioneStanza -> EsplorazioneStanza
+[2026-06-17 17:18:54] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Stanza del Tesoro (Livello 0)
+[2026-06-17 17:19:33] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: raccogli
+[2026-06-17 17:20:09] [DEBUG] ProgEsameUniVPM.EsplorazioneStanza Eseguita azione: vai est
+[2026-06-17 17:20:09] [INFORMATION] GameManager          Spostamento: Stanza del Tesoro -> Cantina (Est)
+[2026-06-17 17:20:09] [DEBUG] Giocatore            Stamina cambiata di 2 (ora: 10/10)
+[2026-06-17 17:20:09] [DEBUG] GameManager          Transizione stato: EsplorazioneStanza -> EsplorazioneStanza
+[2026-06-17 17:20:09] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Cantina (Livello 0)
+[2026-06-17 17:20:19] [WARNING] ProgEsameUniVPM.EsplorazioneStanza Azione non riconosciuta: help

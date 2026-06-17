@@ -107,6 +107,11 @@ public static class UI
         }
     }
 
+    public static void ListaInventario(Stack<Oggetto> inv)
+    {
+        
+    }
+
     /// <summary>
     /// Elenca tutte le azioni disponibili nella stanza con ID e descrizione.
     /// </summary>
