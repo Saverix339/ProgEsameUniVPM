@@ -305,6 +305,7 @@ public class Combattimento : IStato
     {
         Logger.Get<Combattimento>().LogInformation("Combattimento iniziato contro {Nemico} (HP: {HP})", Avversario.Nome, Avversario.Salute);
         UI.EntrataNemico(Avversario);
+        UI.MostraTurnoGiocatore(GameManager.Giocatore, Avversario);
         agisci("");
     }
     /// <summary>

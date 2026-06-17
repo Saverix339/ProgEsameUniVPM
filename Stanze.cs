@@ -209,7 +209,7 @@ public class Stanza
             "raccogli torcia",
             "Raccogli Torcia",
             "Raccogli una torcia appoggiata vicino all'ingresso.",
-            () => { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); }
+            () => { UI.MostraMessaggio("Raccogli la torcia. La stanza si illumina."); }
         );
         s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_base() });
         return s;

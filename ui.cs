@@ -123,10 +123,13 @@ public static class UI
             Console.WriteLine("  Nessuna azione disponibile.");
             return;
         }
+        
         foreach (var azione in s.Azioni.Values)
         {
             Console.WriteLine($"  {azione.Id,-20} - {azione.Descrizione}");
         }
+        Console.WriteLine("drop - fai cadere l'ultimo oggetto messo nell'inventario.");
+        Console.WriteLine("guarda inventario - guarda l'ultimo oggetto messo");
         Console.WriteLine();
     }
 
