@@ -1,16 +1,31 @@
 namespace ProgEsameUniVPM;
 using Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Gestore globale dello stato di gioco (pattern Singleton statico).
+/// Mantiene il riferimento al giocatore, alla stanza corrente e allo stato attivo della state machine.
+/// </summary>
 public static class GameManager
 {
+    /// <summary>Il giocatore controllato dall'utente.</summary>
     public static Giocatore Giocatore { get; set; } = null!;
+    /// <summary>La stanza in cui si trova attualmente il giocatore.</summary>
     public static Stanza StanzaCorrente {get; set;} = Mappa.Verso(new Coord(0, 0)) ?? Stanza.Ingresso(new Coord(0, 0));
+    /// <summary>Lo stato attivo della state machine di gioco (es. esplorazione, combattimento, mercante).</summary>
     public static IStato? StatoGioco = new CreazionePersonaggio();
 
+    /// <summary>
+    /// Metodo placeholder per avanzamento (non implementato).
+    /// </summary>
     public static void Avanza()
     {
 
     }
+    /// <summary>
+    /// Effettua una transizione di stato: esce dallo stato corrente, imposta il nuovo stato
+    /// e chiama il suo metodo <see cref="IStato.entra"/>.
+    /// </summary>
+    /// <param name="Cambio">Nuovo stato da attivare.</param>
     public static void CambiaStato(IStato Cambio)
     {
         var vecchio = StatoGioco?.GetType().Name ?? "null";
@@ -21,6 +36,11 @@ public static class GameManager
         StatoGioco.entra();
     }
 
+    /// <summary>
+    /// Sposta il giocatore nella direzione specificata, gestendo porte (bloccate/chiuse),
+    /// consumo di stamina, e attivazione di combattimenti se la stanza di destinazione ha un nemico.
+    /// </summary>
+    /// <param name="direzione">Direzione verso cui spostarsi (Nord, Sud, Est, Ovest).</param>
     public static void Sposta(Direzione direzione)
     {
         var log = Logger.For("GameManager");
@@ -61,6 +81,7 @@ public static class GameManager
         {
             log.LogInformation("Nemico incontrato nella stanza: {Nemico}", StanzaCorrente.NemicoStanza.Nome);
             CambiaStato(new Combattimento(esplorazione, StanzaCorrente.NemicoStanza));
+            return;
         }
         CambiaStato(esplorazione);
     }

@@ -1,10 +1,18 @@
 using System;
 namespace ProgEsameUniVPM;
 
-//Classe statica per gestire tutto quello che viene stampato a schermo. 
-//Gestisce inoltre la formattazione dell'input in '.Trim().ToLower()'
+/// <summary>
+/// Classe statica per gestire tutto l'I/O a console: input dell'utente
+/// (normalizzato in minuscolo con Trim), output di stanze, combattimenti,
+/// menù e messaggi di sistema.
+/// </summary>
 public static class UI
 {
+    /// <summary>
+    /// Chiede all'utente se desidera caricare un salvataggio esistente.
+    /// Accetta "s"/"si"/"sì"/"yes"/"y" per sì, "n"/"no" per no.
+    /// </summary>
+    /// <returns><c>true</c> se l'utente vuole caricare, <c>false</c> altrimenti.</returns>
     public static bool ChiediCaricamento()
     {
         Console.WriteLine("È stato trovato un salvataggio precedente. Desideri caricarlo? (s/n)");
@@ -23,13 +31,10 @@ public static class UI
         }
     }
 
-    /* private enum StatoInit {
-        ScriviNome,
-        PrendiArma,
-        Conferma,
-        FineInit
-    }
-    private static StatoInit stato; */
+    /// <summary>
+    /// Richiede il nome del personaggio. Rifiuta nomi vuoti o più lunghi di 16 caratteri.
+    /// </summary>
+    /// <returns>Il nome scelto dal giocatore.</returns>
     public static string ChiediNome()
     {
         Console.WriteLine("Inserisci il nome del tuo personaggio: \n");
@@ -45,29 +50,37 @@ public static class UI
             }
         }
     }
+
+    /// <summary>
+    /// Mostra il menù di scelta dell'arma iniziale e restituisce l'arma selezionata.
+    /// </summary>
+    /// <returns>L'arma scelta (Spada, Scudo o Coltello).</returns>
     public static Armi ScegliArma()
-{
-    Console.WriteLine("Scegli un'arma iniziale:\n");
-    Console.WriteLine("1. Spada  2. Scudo  3. Coltello");
-    while (true)
     {
-        string arma = Console.ReadLine() ?? "";
-            switch (arma.ToLower())
-            {
-                case "1" or "spada":
-                    return Armi.Spada();
-                case "2" or "scudo":
-                    return Armi.Scudo();
-                case "3" or "coltello":
-                    return Armi.coltello();
-                default:
-                    Console.WriteLine("Input invalido");
-                    break;
-            }
+        Console.WriteLine("Scegli un'arma iniziale:\n");
+        Console.WriteLine("1. Spada  2. Scudo  3. Coltello");
+        while (true)
+        {
+            string arma = Console.ReadLine() ?? "";
+                switch (arma.ToLower())
+                {
+                    case "1" or "spada":
+                        return Armi.Spada();
+                    case "2" or "scudo":
+                        return Armi.Scudo();
+                    case "3" or "coltello":
+                        return Armi.coltello();
+                    default:
+                        Console.WriteLine("Input invalido");
+                        break;
+                }
+        }
     }
 
-}
-
+    /// <summary>
+    /// Mostra le informazioni della stanza corrente: nome, livello, descrizione e azioni disponibili.
+    /// </summary>
+    /// <param name="s">Stanza da mostrare.</param>
     public static void MostraStanza(Stanza s)
     {
         Console.WriteLine($"===={s.Nome.ToUpper()}====");
@@ -78,6 +91,10 @@ public static class UI
         MostraAzioni(s);
     }
 
+    /// <summary>
+    /// Mostra la lista degli oggetti in vendita dal mercante.
+    /// </summary>
+    /// <param name="oggetti">Lista degli oggetti disponibili all'acquisto.</param>
     public static void ListaOggettiMercante(List<Oggetto> oggetti)
     {
         if(oggetti.Count() == 0) {Console.WriteLine("Con il tavolo vuoto, il mercante se ne è andato."); return;}
@@ -89,6 +106,11 @@ public static class UI
             Console.WriteLine($"{ogg.Nome,-20}-{ogg.Valore} oro\n");
         }
     }
+
+    /// <summary>
+    /// Elenca tutte le azioni disponibili nella stanza con ID e descrizione.
+    /// </summary>
+    /// <param name="s">Stanza di cui mostrare le azioni.</param>
     public static void MostraAzioni(Stanza s)
     {
         if (s.Azioni.Count == 0)
@@ -96,15 +118,6 @@ public static class UI
             Console.WriteLine("  Nessuna azione disponibile.");
             return;
         }
-        // var gruppi = s.Azioni.Values.GroupBy(a => a.Categoria);
-        // foreach (var gruppo in gruppi)
-        // {
-        //     Console.WriteLine($"\n[{gruppo.Key}]");
-        //     foreach (var azione in gruppo)
-        //     {
-        //         Console.WriteLine($"  {azione.Id,-20} - {azione.Descrizione}");
-        //     }
-        // }
         foreach (var azione in s.Azioni.Values)
         {
             Console.WriteLine($"  {azione.Id,-20} - {azione.Descrizione}");
@@ -112,21 +125,43 @@ public static class UI
         Console.WriteLine();
     }
 
+    /// <summary>
+    /// Mostra un messaggio di danno inflitto a un'entità.
+    /// </summary>
+    /// <param name="nome">Nome dell'entità che subisce il danno.</param>
+    /// <param name="danno">Quantità di danno subito.</param>
     public static void MostraDanno(string nome, int danno)
     {
         Console.WriteLine($"{nome} prende {danno} danni!");
     }
+
+    /// <summary>
+    /// Richiede un input all'utente, mostrando il nome del giocatore come prompt.
+    /// L'input viene normalizzato (Trim + ToLower).
+    /// </summary>
+    /// <param name="g">Giocatore corrente (per il prompt).</param>
+    /// <returns>Input normalizzato dell'utente.</returns>
     public static string Input(Giocatore g)
     {
         Console.WriteLine($"\n{g.Nome}>");
         return Console.ReadLine()?.Trim().ToLower() ?? "";
     }
 
+    /// <summary>
+    /// Mostra il messaggio di entrata in combattimento di un nemico.
+    /// </summary>
+    /// <param name="n">Nemico apparso.</param>
     public static void EntrataNemico(Nemico n)
     {
         Console.WriteLine($"Davanti a te compare un {n.Nome}!");
     }
 
+    /// <summary>
+    /// Mostra l'interfaccia del turno del giocatore durante il combattimento:
+    /// HP, stamina, stato del nemico e azioni disponibili.
+    /// </summary>
+    /// <param name="g">Giocatore corrente.</param>
+    /// <param name="nemico">Nemico affrontato.</param>
     public static void MostraTurnoGiocatore(Giocatore g, Nemico nemico)
     {
         Console.WriteLine($"TURNO DI {g.Nome.ToUpper()}");
@@ -139,12 +174,21 @@ public static class UI
         Console.WriteLine("  scappa   - tenta di fuggire dal combattimento");
     }
 
+    /// <summary>
+    /// Mostra il messaggio di vittoria dopo aver sconfitto un nemico, inclusa la ricompensa in oro.
+    /// </summary>
+    /// <param name="n">Nemico sconfitto.</param>
+    /// <param name="oro">Oro ottenuto come ricompensa.</param>
     public static void MostraVittoria(Nemico n, int oro)
     {
         Console.WriteLine($"\nHai sconfitto {n.Nome}!");
         Console.WriteLine($"Hai ottenuto {oro} oro.");
     }
 
+    /// <summary>
+    /// Tenta la fuga dal combattimento con una probabilità del 40%.
+    /// </summary>
+    /// <returns><c>true</c> se la fuga riesce, <c>false</c> altrimenti.</returns>
     public static bool ChiediFuga()
     {
         Console.WriteLine("Tentativo di fuga...");
@@ -157,6 +201,10 @@ public static class UI
         return success;
     }
 
+    /// <summary>
+    /// Mostra la schermata di Game Over e termina il gioco.
+    /// </summary>
+    /// <param name="g">Giocatore sconfitto.</param>
     public static void GameOver(Giocatore g)
     {
         Console.WriteLine($"\n===FINE===\n{g.Nome} è morto/a, premi un tasto per chiudere il gioco.");
@@ -164,25 +212,31 @@ public static class UI
         Environment.Exit(0);
     }
 
+    /// <summary>
+    /// Mostra un messaggio di errore a schermo.
+    /// </summary>
+    /// <param name="s">Testo dell'errore.</param>
     public static void MostraErrore(string s)
     {
         Console.WriteLine("ERRORE: " + s);
     }
-    //Semplicemente mostra un messaggio 's'.
-    //Per rendere il codice ordinato, dovrebbe essere usato poco (invece, bisognerebbe creare metodi apposta per i casi a cui servono)
+
+    /// <summary>
+    /// Mostra un messaggio generico a schermo.
+    /// </summary>
+    /// <param name="s">Testo del messaggio.</param>
     public static void MostraMessaggio(string s)
     {
         Console.WriteLine(s);
     }
 
+    /// <summary>
+    /// Mostra l'animazione testuale del teletrasporto verso una destinazione.
+    /// </summary>
+    /// <param name="nomeDestinazione">Nome della stanza di destinazione.</param>
     public static void MostraTeletrasporto(string nomeDestinazione)
     {
         Console.WriteLine("Il cerchio runico si illumina! Vieni avvolto da una luce accecante...");
         Console.WriteLine($"...e riappaiono nella {nomeDestinazione}.");
     }
 }
-
-//  Aggiungere: Testo per uscita combattimento,
-//  Testo per mostrare le azioni,
-//  in Program.cs cambiare la logica Azioni Nemici,
-//  in Program.cs la logica per usare l'oggetto (e i corrispondenti testi stampati),

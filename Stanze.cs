@@ -5,16 +5,27 @@ using System.Runtime.InteropServices.Marshalling;
 using ProgEsameUniVPM;
 using Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Rappresenta una coordinata 2D sulla griglia della mappa (X, Y).
+/// Supporta l'addizione tramite operatore +.
+/// </summary>
 public readonly record struct Coord(int X, int Y)
 {
+    /// <summary>Somma componente per componente di due coordinate.</summary>
     public static Coord operator +(Coord a, Coord b) => new(a.X + b.X, a.Y + b.Y);
 }
 
+/// <summary>Direzioni cardinali per la navigazione tra le stanze.</summary>
 public enum Direzione { Nord, Sud, Est, Ovest }
 
 
+/// <summary>
+/// Metodi di estensione per la gestione delle direzioni: conversione in delta di coordinate,
+/// direzione opposta e rappresentazione testuale.
+/// </summary>
 public static class ManagerDirezioni
 {
+    /// <summary>Mappa ogni direzione al corrispondente spostamento (delta) sulla griglia.</summary>
     private static readonly Dictionary<Direzione, Coord> DeltaPosizione = new()
     {
         [Direzione.Nord]  = new Coord(0, 1),
@@ -23,7 +34,15 @@ public static class ManagerDirezioni
         [Direzione.Ovest] = new Coord(-1, 0),
     };
 
+    /// <summary>Converte una direzione nel delta di coordinate corrispondente.</summary>
+    /// <param name="d">La direzione.</param>
+    /// <returns>Il delta (es. Nord = (0,1)).</returns>
     public static Coord ToDelta(this Direzione d) => DeltaPosizione[d];
+
+    /// <summary>Restituisce la direzione opposta.</summary>
+    /// <param name="d">La direzione di partenza.</param>
+    /// <returns>La direzione opposta (es. Nord -> Sud).</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Se la direzione non è valida.</exception>
     public static Direzione Opposta(this Direzione d) => d switch
     {
         Direzione.Nord  => Direzione.Sud,
@@ -32,6 +51,8 @@ public static class ManagerDirezioni
         Direzione.Ovest => Direzione.Est,
         _ => throw new ArgumentOutOfRangeException(nameof(d))
     };
+
+    /// <summary>Restituisce la direzione in minuscolo come stringa (es. "nord").</summary>
     public static string Testo(this Direzione d) => d.ToString().ToLowerInvariant();
 }
 
@@ -41,28 +62,43 @@ public static class ManagerDirezioni
 public enum StatoPorta { Aperta, Chiusa, Bloccata }
 
 /// <summary>
-/// Classe per istanziare porte tra le stanze, 
+/// Classe per istanziare porte tra le stanze,
 /// possono richiedere una chiave per essere aperte, usano l'ID della chiave.
 /// </summary>
 public class Porta
 {
+    /// <summary>Stato attuale della porta.</summary>
     public StatoPorta Stato { get; set; } = StatoPorta.Aperta;
+    /// <summary>ID della chiave richiesta per aprire, o <c>null</c> se non serve.</summary>
     public string? ChiaveRichiesta { get; set; }
 
+    /// <summary>Indica se la porta richiede una chiave per essere aperta.</summary>
     public bool RichiedeChiave => ChiaveRichiesta is not null;
 }
 
+/// <summary>
+/// Rappresenta un'azione eseguibile dal giocatore all'interno di una stanza.
+/// </summary>
 public class Azione
 {
+    /// <summary>Identificatore univoco dell'azione (usato come comando testuale).</summary>
     public required string Id { get; init; }
+    /// <summary>Nome descrittivo dell'azione.</summary>
     public required string Nome { get; init; }
+    /// <summary>Descrizione dettagliata dell'azione.</summary>
     public required string Descrizione { get; init; }
-    //public string Categoria { get; init; } = "Altro";
 
-    
+    /// <summary>Callback eseguito quando l'azione viene attivata.</summary>
     public Action Esegui { get; init; } = () => { };
 
-    //public static Azione Crea(string id, string nome, string descrizione, string categoria, Action callback)
+    /// <summary>
+    /// Crea una nuova azione con i parametri specificati.
+    /// </summary>
+    /// <param name="id">Identificatore/comando dell'azione.</param>
+    /// <param name="nome">Nome descrittivo.</param>
+    /// <param name="descrizione">Descrizione testuale.</param>
+    /// <param name="callback">Callback da eseguire.</param>
+    /// <returns>Una nuova istanza di <see cref="Azione"/>.</returns>
     public static Azione Crea(string id, string nome, string descrizione, Action callback)
     {
         return new Azione
@@ -70,49 +106,80 @@ public class Azione
             Id = id,
             Nome = nome,
             Descrizione = descrizione,
-            //Categoria = categoria,
-            //Categoria = "Altro",
             Esegui = callback
         };
     }
 }
 
+/// <summary>
+/// Rappresenta una stanza del dungeon. Contiene coordinate, oggetti, azioni disponibili,
+/// porte verso altre stanze e opzionalmente un nemico o un incontro col mercante.
+/// </summary>
 public class Stanza
 {
+    /// <summary>Identificatore univoco della stanza.</summary>
     public required string Id { get; init; }
+    /// <summary>Nome della stanza.</summary>
     public required string Nome { get; init; }
+    /// <summary>Descrizione testuale mostrata al giocatore.</summary>
     public required string Descrizione { get; init; }
 
+    /// <summary>Coordinate della stanza sulla griglia della mappa.</summary>
     public required Coord Coordinate { get; init; }
 
+    /// <summary>Lista degli oggetti presenti a terra nella stanza.</summary>
     public List<OggettoTrovabile> OggettiStanza { get; } = new();
 
     /// <summary>
-    /// Livello Per Sviluppi successivi. Al momento solo livello 0.
+    /// Livello del dungeon (per sviluppi futuri). Al momento solo livello 0.
     /// </summary>
     public required int Livello { get; init; }
 
+    /// <summary>Dizionario delle azioni disponibili nella stanza (chiave = ID azione).</summary>
     public Dictionary<string, Azione> Azioni { get; } = new();
 
+    /// <summary>Dizionario delle porte che collegano la stanza ad altre stanze.</summary>
     public Dictionary<Direzione, Porta> Porte { get; } = new();
 
+    /// <summary>Indica se è la prima volta che il giocatore visita questa stanza.</summary>
     public bool PrimaVolta { get; set; } = true;
 
+    /// <summary>Nemico presente nella stanza, o <c>null</c> se la stanza è sicura.</summary>
     public Nemico? NemicoStanza;
-    public bool IncontroMercante = false; //NOTA: se true, oggettistanza diventa la lista del mercante di default.
+    /// <summary>Se <c>true</c>, la stanza ospita un incontro col mercante.</summary>
+    public bool IncontroMercante = false;
 
+    /// <summary>Indica se il nemico della stanza è già stato sconfitto.</summary>
     public bool NemicoSconfitto = false;
 
+    /// <summary>
+    /// Aggiunge un'azione alla stanza.
+    /// </summary>
+    /// <param name="id">Identificatore/comando dell'azione.</param>
+    /// <param name="nome">Nome descrittivo.</param>
+    /// <param name="descrizione">Descrizione testuale.</param>
+    /// <param name="callback">Callback da eseguire all'attivazione.</param>
     public void AggiungiAzione(string id, string nome, string descrizione, Action callback)
     {
         Azioni[id] = Azione.Crea(id, nome, descrizione, callback);
     }
 
+    /// <summary>
+    /// Rimuove un'azione dalla stanza.
+    /// </summary>
+    /// <param name="id">Identificatore dell'azione da rimuovere.</param>
+    /// <returns><c>true</c> se l'azione è stata trovata e rimossa.</returns>
     public bool RimuoviAzione(string id)
     {
         return Azioni.Remove(id);
     }
 
+    /// <summary>
+    /// Raccoglie un oggetto dalla stanza dato il suo GUID.
+    /// </summary>
+    /// <param name="id">GUID dell'oggetto da raccogliere.</param>
+    /// <param name="oggetto">L'oggetto raccolto, o <c>null</c> se non trovato.</param>
+    /// <returns><c>true</c> se l'oggetto è stato trovato e rimosso.</returns>
     public bool RaccogliOggetto(Guid id, out Oggetto? oggetto)
     {
         var trovato = OggettiStanza.FirstOrDefault(o => o.oggetto.Id == id);
@@ -122,17 +189,12 @@ public class Stanza
         return true;
     }
 
-    /*
-    private List<Oggetto> Tesori;
-
-    public Stanza()
-    {
-        Tesori.Add(Consumabili.Pane());
-        Tesori.Add(Consumabili.Mela());
-        Tesori.Add(Armi.coltello());
-    }
-    */
-
+    /// <summary>
+    /// Crea la stanza d'ingresso del dungeon.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza (default: "ingresso").</param>
+    /// <returns>Una nuova stanza d'ingresso.</returns>
     public static Stanza Ingresso(Coord posizione, string id = "ingresso")
     {
         Stanza s = new Stanza()
@@ -149,23 +211,16 @@ public class Stanza
             "Raccogli una torcia appoggiata vicino all'ingresso.",
             () => { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); }
         );
-        // s.AggiungiAzione(
-        //     "parla al mercante",
-        //     "Parla al Mercante",
-        //     "Parla con il misterioso mercante e guarda la sua merce.",
-        //     () =>
-        //     {
-        //         var esplorazione = GameManager.StatoGioco as EsplorazioneStanza;
-        //         if (esplorazione is not null)
-        //             GameManager.CambiaStato(new IncontroMercante { Contesto = esplorazione });
-        //     }
-        // );
         s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pozione_curativa_base() });
-        //s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Mela() });
-        //s.OggettiStanza.Add(new OggettoTrovabile { oggetto = Consumabili.Pane() });
         return s;
     }
 
+    /// <summary>
+    /// Crea una stanza del tesoro che permette di raccogliere 20 oro.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza (default: "tesoro").</param>
+    /// <returns>Una nuova stanza del tesoro.</returns>
     public static Stanza StanzaDelTesoro(Coord posizione, string id = "tesoro")
     {
         Stanza s = new Stanza()
@@ -185,6 +240,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea l'armeria dove il giocatore può migliorare la propria arma.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza (default: "armeria").</param>
+    /// <returns>Una nuova armeria.</returns>
     public static Stanza Armeria(Coord posizione, string id = "armeria")
     {
         Stanza s = new Stanza()
@@ -213,6 +274,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea una cantina con rifornimenti: una pozione curativa e una chiave d'oro.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza (default: "cantina").</param>
+    /// <returns>Una nuova cantina.</returns>
     public static Stanza Cantina(Coord posizione, string id = "cantina")
     {
         Stanza s = new Stanza()
@@ -256,6 +323,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea un corridoio di passaggio senza oggetti speciali.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza (default: "corridoio").</param>
+    /// <returns>Un nuovo corridoio.</returns>
     public static Stanza Corridoio(Coord posizione, string id = "corridoio")
     {
         Stanza s = new Stanza()
@@ -268,6 +341,14 @@ public class Stanza
         };
         return s;
     }
+
+    /// <summary>
+    /// Crea una stanza di combattimento con un nemico specifico.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="nemico">Il nemico da posizionare nella stanza.</param>
+    /// <param name="duplicato">Numero duplicato per generare un ID univoco in caso di stanze multiple con lo stesso nemico.</param>
+    /// <returns>Una nuova stanza di combattimento.</returns>
     public static Stanza StanzaCombattimento(Coord posizione, Nemico nemico, int duplicato = 0)
     {
         Stanza s = new Stanza()
@@ -282,6 +363,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea una stanza del teletrasporto che sposta il giocatore in una stanza casuale del dungeon.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza (default: "teletrasporto").</param>
+    /// <returns>Una nuova stanza del teletrasporto.</returns>
     public static Stanza StanzaTeletrasporto(Coord posizione, string id = "teletrasporto")
     {
         Stanza s = new Stanza()
@@ -316,6 +403,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea una stanza curativa che ripristina completamente PV e stamina del giocatore.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <returns>Una nuova stanza curativa.</returns>
     public static Stanza StanzaCurativa(Coord posizione, string id)
     {
         Stanza s = new Stanza()
@@ -340,6 +433,13 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea la stanza dell'inceneritore dove il giocatore può incantare l'arma con il fuoco,
+    /// riducendone il costo in stamina di 1.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <returns>Una nuova stanza inceneritore.</returns>
     public static Stanza Inceneritore(Coord posizione, string id)
     {
         Stanza s = new Stanza()
@@ -379,6 +479,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea la stanza del mercante con oggetti in vendita e la chiave del boss.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <returns>Una nuova stanza del mercante.</returns>
     public static Stanza StanzaMercante(Coord posizione, string id)
     {
         Stanza s = new Stanza()
@@ -418,6 +524,13 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea una stanza con un miniboss.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <param name="miniboss">Il miniboss da posizionare nella stanza.</param>
+    /// <returns>Una nuova stanza miniboss.</returns>
     public static Stanza StanzaMiniboss(Coord posizione, string id, Nemico miniboss)
     {
         Stanza s = new Stanza()
@@ -432,6 +545,12 @@ public class Stanza
         return s;
     }
 
+    /// <summary>
+    /// Crea la sala del boss finale con il Signore del Dungeon.
+    /// </summary>
+    /// <param name="posizione">Coordinate della stanza.</param>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <returns>Una nuova sala del boss.</returns>
     public static Stanza StanzaBoss(Coord posizione, string id)
     {
         Stanza s = new Stanza()
@@ -447,8 +566,12 @@ public class Stanza
     }
 }
 
+/// <summary>
+/// Contiene le posizioni predefinite e i collegamenti tra le stanze del dungeon.
+/// </summary>
 public static class DizionarioMappa
 {
+    /// <summary>Mappa gli ID delle stanze alle loro coordinate sulla griglia.</summary>
     public static readonly Dictionary<string, Coord> Posizioni = new()
     {
         ["ingresso"]        = new Coord(0, -2),
@@ -473,6 +596,7 @@ public static class DizionarioMappa
         ["teletrasporto"]   = new Coord(2, -2),
     };
 
+    /// <summary>Mappa gli ID delle stanze agli ID delle stanze adiacenti (collegamenti).</summary>
     public static readonly Dictionary<string, string[]> Collegamenti = new()
     {
         ["ingresso"]        = new[] { "cantina_S" },
@@ -498,8 +622,12 @@ public static class DizionarioMappa
     };
 }
 
+/// <summary>
+/// Lista di oggetti tesoro disponibili nel gioco (usata come riferimento).
+/// </summary>
 public static class ListeStanze
 {
+    /// <summary>Oggetti tesoro base.</summary>
     public static List<Oggetto> Tesori = [
         Armi.coltello(),
         Consumabili.Pane(),
@@ -507,28 +635,49 @@ public static class ListeStanze
     ];
 }
 
+/// <summary>
+/// Tiene traccia delle stanze visitate dal giocatore.
+/// </summary>
 public static class StanzeVisitate
 {
+    /// <summary>Lista delle stanze visitate.</summary>
     public static List<Stanza> ListaVisitate = new();
+
+    /// <summary>Aggiunge una stanza alla lista delle visitate.</summary>
+    /// <param name="s">Stanza da aggiungere.</param>
     public static void AggiungiStanza(Stanza s)
     {
         ListaVisitate.Add(s);
     }
 }
 
+/// <summary>
+/// Gestisce la mappa del dungeon: inizializzazione delle stanze, collegamenti,
+/// porte, nemici e azioni di movimento.
+/// </summary>
 public static class Mappa
 {
+    /// <summary>Dizionario di tutte le stanze, indicizzate per coordinate.</summary>
     public static Dictionary<Coord, Stanza> Stanze { get; } = new();
 
+    /// <summary>Restituisce la stanza alle coordinate specificate, o <c>null</c> se non esiste.</summary>
+    /// <param name="c">Coordinate da cercare.</param>
+    /// <returns>La stanza trovata, o <c>null</c>.</returns>
     public static Stanza? Verso(Coord c) => Stanze.TryGetValue(c, out var s) ? s : null;
 
+    /// <summary>Pool di miniboss disponibili per l'assegnazione casuale.</summary>
     private static readonly Nemico[] PoolMiniboss = new[] { Nemico.MaestroArmi(), Nemico.Guardiano() };
 
-    //private static Stanza? PrendiStanza(string id) => 
+    /// <summary>Coordinate della stanza iniziale (ingresso).</summary>
     public static Coord CoordinateIniziali;
 
+    /// <summary>Dizionario che associa ID stanza al nome del miniboss assegnato (per salvataggio).</summary>
     public static readonly Dictionary<string, string> AssegnazioniMiniboss = new();
 
+    /// <summary>
+    /// Inizializza (o reinizializza) l'intera mappa: crea tutte le stanze,
+    /// collega le porte, assegna miniboss casuali e aggiunge le azioni di movimento.
+    /// </summary>
     public static void Inizializza()
     {
         Stanze.Clear();
@@ -575,6 +724,14 @@ public static class Mappa
         Logger.For("Mappa").LogInformation("Mappa inizializzata: {N} stanze", Stanze.Count);
     }
 
+    /// <summary>
+    /// Crea una stanza in base al suo ID, determinandone il tipo.
+    /// </summary>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <param name="pos">Coordinate della stanza.</param>
+    /// <param name="rng">Generatore di numeri casuali per assegnazioni random.</param>
+    /// <returns>La stanza creata.</returns>
+    /// <exception cref="ArgumentException">Se l'ID della stanza non è riconosciuto.</exception>
     private static Stanza CreaStanza(string id, Coord pos, Random rng)
     {
         if(id == "ingresso") CoordinateIniziali=pos;
@@ -595,6 +752,13 @@ public static class Mappa
         };
     }
 
+    /// <summary>
+    /// Crea una stanza miniboss assegnando casualmente un nemico dal pool.
+    /// </summary>
+    /// <param name="id">Identificatore della stanza.</param>
+    /// <param name="pos">Coordinate della stanza.</param>
+    /// <param name="rng">Generatore di numeri casuali.</param>
+    /// <returns>Una nuova stanza miniboss.</returns>
     private static Stanza CreaMiniboss(string id, Coord pos, Random rng)
     {
         var miniboss = PoolMiniboss[rng.Next(PoolMiniboss.Length)];
@@ -605,10 +769,18 @@ public static class Mappa
         return Stanza.StanzaMiniboss(pos, id, miniboss);
     }
 
+    /// <summary>
+    /// Record per serializzare/deserializzare l'assegnazione di un miniboss a una stanza.
+    /// </summary>
     public record struct NemicoCopiabile
     {
+        /// <summary>Nome completo del nemico (es. "Maestro", "Guardiano Della Cripta").</summary>
         public string NomeCompleto { get; init; }
+        /// <summary>Serializza il nome in stringa.</summary>
         public string Serialize() => NomeCompleto;
+        /// <summary>Ricostruisce un nemico a partire dal nome.</summary>
+        /// <param name="nome">Nome del nemico.</param>
+        /// <returns>Il nemico ricostruito, o <c>null</c> se il nome non è riconosciuto.</returns>
         public static Nemico? DaString(string nome) => nome switch
         {
             "Maestro" => Nemico.MaestroArmi(),
@@ -617,6 +789,12 @@ public static class Mappa
         };
     }
 
+    /// <summary>
+    /// Calcola la direzione tra due coordinate adiacenti.
+    /// </summary>
+    /// <param name="da">Coordinata di partenza.</param>
+    /// <param name="a">Coordinata di arrivo.</param>
+    /// <returns>La direzione, o <c>null</c> se le coordinate non sono adiacenti ortogonalmente.</returns>
     private static Direzione? DirezioneVerso(Coord da, Coord a)
     {
         var delta = new Coord(a.X - da.X, a.Y - da.Y);
@@ -627,6 +805,13 @@ public static class Mappa
         return null;
     }
 
+    /// <summary>
+    /// Collega due stanze con una porta. Se è specificata una chiave, la porta sarà bloccata.
+    /// </summary>
+    /// <param name="da">Stanza di partenza.</param>
+    /// <param name="a">Stanza di arrivo.</param>
+    /// <param name="dir">Direzione dalla prima alla seconda stanza.</param>
+    /// <param name="chiaveRichiesta">ID della chiave richiesta, o <c>null</c> per porta normale.</param>
     private static void Collega(Stanza da, Stanza a, Direzione dir, string? chiaveRichiesta)
     {
         if (chiaveRichiesta is not null)
@@ -641,11 +826,22 @@ public static class Mappa
         }
     }
 
+    /// <summary>
+    /// Verifica se una stanza è collegata a un'altra nella direzione specificata.
+    /// </summary>
+    /// <param name="s">Stanza di partenza.</param>
+    /// <param name="d">Direzione da controllare.</param>
+    /// <returns><c>true</c> se esiste una stanza nella direzione indicata.</returns>
     public static bool SiCollega(Stanza s, Direzione d)
     {
         return Verso(s.Coordinate + d.ToDelta()) != null;
     }
 
+    /// <summary>
+    /// Aggiunge le azioni di movimento ("vai nord", "vai sud", ecc.) a una stanza
+    /// per tutte le direzioni in cui esiste un collegamento.
+    /// </summary>
+    /// <param name="s">Stanza a cui aggiungere le azioni.</param>
     private static void AggiungiAzioniMovimento(Stanza s)
     {
         foreach (Direzione dir in Enum.GetValues<Direzione>())

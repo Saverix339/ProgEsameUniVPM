@@ -2,7 +2,6 @@
 ## Gruppo composto da:
 - G. Magnani
 - R. Crivellari 
-- Manuel *
 - S. Di Francesco (S1132570)
 - L. Vitali
 

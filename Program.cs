@@ -5,8 +5,16 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Punto di ingresso dell'applicazione. Gestisce il game loop principale, il caricamento/salvataggio
+/// e la state machine del gioco tramite l'interfaccia <see cref="IStato"/>.
+/// </summary>
 class Program
 {
+    /// <summary>
+    /// Entry point: inizializza il sistema di logging, carica un eventuale salvataggio
+    /// e avvia il game loop principale.
+    /// </summary>
     static void Main(string[] args)
     {
         var services = new ServiceCollection();
@@ -64,28 +72,19 @@ class Program
         {
             if (GameManager.StatoGioco is null) break;
             string input = UI.Input(GameManager.Giocatore);
-            /*if(string.IsNullOrWhiteSpace(input)) continue;
-            if(input is "esci" or "exit" or "quit") break;
-            if(input == "salva") { JsonSalvataggio.salva(GameManager.Giocatore); continue; }
-            if(input == "carica")
-            {
-                var salv = JsonSalvataggio.caricaSalvataggio();
-                if (salv is not null)
-                {
-                    GameManager.Giocatore = salv.Giocatore;
-                    JsonSalvataggio.ApplicaMondo(salv.Mondo);
-                }
-                continue;
-            }*/
             ControllaComando(input, out var ris);
             if(ris == RisultatoAzione.ComandoSpeciale) break;
             GameManager.StatoGioco.agisci(input);
         }
     }
 
-    //Funzione statica che controlla se l'input è un comando speciale (esci, salva, carica, ecc)
-    //Mette in uscita un Risultato azione. Se l'azione è un comando, segnala al game loop di non elaborare l'input-
-    //e saltare direttamente a un nuovo input.
+    /// <summary>
+    /// Verifica se l'input dell'utente corrisponde a un comando globale (esci, salva, carica).
+    /// Se riconosciuto, esegue il comando e restituisce <see cref="RisultatoAzione.ComandoSpeciale"/>
+    /// per segnalare al game loop di non elaborare ulteriormente l'input.
+    /// </summary>
+    /// <param name="input">Input testuale dell'utente.</param>
+    /// <param name="risultato">Tipo di risultato: <see cref="RisultatoAzione.ComandoSpeciale"/> se è stato eseguito un comando globale, <c>null</c> altrimenti.</param>
     private static void ControllaComando(string input, out RisultatoAzione? risultato)
     {
         if(input is "esci" or "exit" or "quit")
@@ -120,27 +119,48 @@ class Program
     }
 }
 
-//Enum usato per fare in modo che i vari elementi comunichino tra di loro se l'input è corretto o no.
-public enum RisultatoAzione //elemento che viene comunicato al Game manager per fare capire se l'input viene riconosciuto o no.
+/// <summary>
+/// Tipi di risultato restituiti da <see cref="IStato.agisci"/> per comunicare al GameManager
+/// se l'input è stato riconosciuto, se è avvenuto un errore o se lo stato deve cambiare.
+/// </summary>
+public enum RisultatoAzione
 {
+    /// <summary>L'azione è stata eseguita con successo.</summary>
     Continua,
+    /// <summary>L'input non è stato riconosciuto o non è valido.</summary>
     Errore,
+    /// <summary>È richiesto un cambio di stato.</summary>
     Cambia,
-    ComandoSpeciale //Caso speciale per comandi globali al di fuori della logica di gioco normale.
+    /// <summary>È stato eseguito un comando speciale globale (esci, salva, carica).</summary>
+    ComandoSpeciale
 }
 
-//Interfaccia per gli stati di gioco che compongono la state machine in GameManager. 
-//Importante: 'void esci()' viene usato solo per eventuali pulizie necessarie quando lo stato di appartenenza viene tolto,
-// ma la logica di cambio stato rimane sempre su GameManager.
+/// <summary>
+/// Interfaccia che definisce un contratto per gli stati della state machine di gioco.
+/// Ogni stato implementa tre fasi: ingresso (<see cref="entra"/>), azione (<see cref="agisci"/>)
+/// e uscita (<see cref="esci"/>). La logica di transizione è gestita da <see cref="GameManager.CambiaStato"/>.
+/// </summary>
 public interface IStato
 {
+    /// <summary>Eseguito quando lo stato diventa attivo. Tipicamente mostra l'interfaccia o inizializza dati.</summary>
     void entra();
+    /// <summary>Elabora l'input dell'utente per lo stato corrente.</summary>
+    /// <param name="input">Input testuale dell'utente.</param>
+    /// <returns>Risultato dell'azione.</returns>
     RisultatoAzione agisci(string input);
+    /// <summary>Eseguito quando lo stato viene rimosso. Usato per eventuali operazioni di pulizia.</summary>
     void esci();
 }
 
+/// <summary>
+/// Stato iniziale del gioco in cui il giocatore sceglie il nome e l'arma di partenza.
+/// </summary>
 public class CreazionePersonaggio : IStato
 {
+    /// <summary>
+    /// Richiede il nome del personaggio e la scelta dell'arma iniziale,
+    /// quindi inizializza il <see cref="GameManager.Giocatore"/>.
+    /// </summary>
     public void entra()
     {
         string nome = UI.ChiediNome();
@@ -151,28 +171,52 @@ public class CreazionePersonaggio : IStato
         GameManager.Giocatore.EquipaggiaArma(armaIniziale);
         Logger.Get<CreazionePersonaggio>().LogInformation("Arma iniziale scelta: {Arma}", armaIniziale.Nome);
     }
+    /// <summary>
+    /// In questo stato l'input non viene elaborato: la creazione è gestita interamente in <see cref="entra"/>.
+    /// </summary>
     public RisultatoAzione agisci(string input)
     {
         return RisultatoAzione.Continua;
     }
+    /// <summary>
+    /// Nessuna operazione di pulizia necessaria.
+    /// </summary>
     public void esci()
     {
         return;
     }
 }
 
+/// <summary>
+/// Stato di esplorazione di una stanza. Mostra la descrizione della stanza e le azioni disponibili,
+/// e smista l'input dell'utente alle azioni configurate.
+/// </summary>
 public class EsplorazioneStanza : IStato
 {
+    /// <summary>La stanza attualmente esplorata.</summary>
     public readonly Stanza _stanza;
+    /// <summary>
+    /// Crea lo stato di esplorazione per la stanza specificata.
+    /// </summary>
+    /// <param name="stanza">La stanza da esplorare.</param>
     public EsplorazioneStanza(Stanza stanza)
     {
         _stanza = stanza;
     }
+    /// <summary>
+    /// Mostra la descrizione della stanza e le azioni disponibili.
+    /// </summary>
     public void entra()
     {
         UI.MostraStanza(_stanza);
         Logger.Get<EsplorazioneStanza>().LogInformation("Entrato in {Stanza} (Livello {Livello})", _stanza.Nome, _stanza.Livello);
     }
+    /// <summary>
+    /// Elabora l'input dell'utente cercando un'azione corrispondente tra quelle disponibili nella stanza.
+    /// Gestisce anche i comandi "getta"/"lascia" per rimuovere oggetti dall'inventario.
+    /// </summary>
+    /// <param name="input">Input testuale dell'utente.</param>
+    /// <returns><see cref="RisultatoAzione.Continua"/> se l'azione è stata eseguita, <see cref="RisultatoAzione.Errore"/> altrimenti.</returns>
     public RisultatoAzione agisci(string input)
     {
         string id = input.ToLowerInvariant().Trim();
@@ -202,23 +246,45 @@ public class EsplorazioneStanza : IStato
         azione.Esegui.Invoke();
         return RisultatoAzione.Continua;
     }
+    /// <summary>
+    /// Nessuna operazione di pulizia necessaria.
+    /// </summary>
     public void esci()
     {
         return;
     }
 }
 
+/// <summary>
+/// Stato di combattimento a turni contro un <see cref="Nemico"/>.
+/// Alterna i turni tra giocatore e avversario, gestendo attacchi, abilità, consumabili e fuga.
+/// </summary>
 public class Combattimento : IStato
 {
+    /// <summary>Riferimento allo stato di esplorazione da ripristinare al termine del combattimento.</summary>
     public EsplorazioneStanza contestoCombattimento;
-    public Nemico Avversario {get; private set;} 
+    /// <summary>Il nemico che il giocatore sta affrontando.</summary>
+    public Nemico Avversario {get; private set;}
+    /// <summary>Indica se il nemico è stato sconfitto nel combattimento corrente.</summary>
     public bool FlagNemicoSconfitto = false;
+
+    /// <summary>Turni del combattimento.</summary>
     public enum Turno
     {
+        /// <summary>Turno del giocatore.</summary>
         Giocatore,
+        /// <summary>Turno dell'avversario.</summary>
         Avversario
     }
-    Turno TurnoCorrente; 
+    /// <summary>Turno attualmente in corso.</summary>
+    Turno TurnoCorrente;
+
+    /// <summary>
+    /// Inizializza il combattimento contro il nemico specificato.
+    /// </summary>
+    /// <param name="Contesto">Stato di esplorazione da ripristinare al termine.</param>
+    /// <param name="nemico">Il nemico da affrontare.</param>
+    /// <param name="TurnoNemico">Se <c>true</c>, il nemico inizia per primo (es. attacco a sorpresa).</param>
     public Combattimento(EsplorazioneStanza Contesto, Nemico nemico, bool TurnoNemico = false)
     {
         contestoCombattimento = Contesto;
@@ -232,12 +298,21 @@ public class Combattimento : IStato
             TurnoCorrente = Turno.Giocatore;
         }
     }
-    public void entra() 
+    /// <summary>
+    /// Avvia il combattimento mostrando l'entrata del nemico e processando il primo turno.
+    /// </summary>
+    public void entra()
     {
         Logger.Get<Combattimento>().LogInformation("Combattimento iniziato contro {Nemico} (HP: {HP})", Avversario.Nome, Avversario.Salute);
         UI.EntrataNemico(Avversario);
         agisci("");
     }
+    /// <summary>
+    /// Elabora un turno di combattimento. Processa gli status effect attivi,
+    /// poi esegue l'azione appropriata in base al turno corrente (giocatore o nemico).
+    /// </summary>
+    /// <param name="input">Azione scelta dal giocatore (attacca, abilita, usa, scappa).</param>
+    /// <returns>Risultato dell'azione.</returns>
     public RisultatoAzione agisci(string input)
     {
         StatusEffect.ProcessaTurno(GameManager.Giocatore.StatusEffects, GameManager.Giocatore);
@@ -326,16 +401,36 @@ public class Combattimento : IStato
         }
     }
 
+    /// <summary>
+    /// All'uscita dal combattimento, se il nemico è stato sconfitto imposta il flag
+    /// <see cref="Stanza.NemicoSconfitto"/> sulla stanza del contesto.
+    /// </summary>
     public void esci()
     {
-        if(FlagNemicoSconfitto == true) contestoCombattimento._stanza.NemicoSconfitto = true;
+        if(FlagNemicoSconfitto == true) {
+            contestoCombattimento._stanza.NemicoSconfitto = true;
+            if (Avversario.Nome.Equals("Signore del Dungeon"))
+            {
+                UI.MostraMessaggio("Hai vinto!");
+                Logger.Get<Giocatore>().LogInformation("Il giocatore {Nome} ha vinto.", GameManager.Giocatore.Nome);
+            }
+        }
     }
 }
 
+/// <summary>
+/// Stato di interazione con il mercante. Permette al giocatore di acquistare gli oggetti
+/// esposti sul tavolo del mercante digitandone il nome.
+/// </summary>
 public class IncontroMercante : IStato
 {
+    /// <summary>Contesto di esplorazione da ripristinare all'uscita dal mercante.</summary>
     public required EsplorazioneStanza Contesto;
+    /// <summary>Lista degli oggetti attualmente in vendita (alias di <see cref="Contesto._stanza.OggettiStanza"/>).</summary>
     public List<OggettoTrovabile> Vendita => Contesto._stanza.OggettiStanza;
+    /// <summary>
+    /// Mostra la lista degli oggetti in vendita. Se il tavolo è vuoto, torna immediatamente all'esplorazione.
+    /// </summary>
     public void entra()
     {
         if (Vendita.Count == 0)
@@ -348,6 +443,11 @@ public class IncontroMercante : IStato
         Logger.Get<IncontroMercante>().LogInformation("Incontro mercante: {N} oggetti disponibili", Vendita.Count);
         UI.ListaOggettiMercante([.. Vendita.Select(og => og.oggetto)]);
     }
+    /// <summary>
+    /// Elabora l'input per acquistare un oggetto (digitandone il nome) o uscire ("esci"/"lascia").
+    /// </summary>
+    /// <param name="input">Nome dell'oggetto da acquistare o "esci"/"lascia" per andarsene.</param>
+    /// <returns>Risultato dell'azione.</returns>
     public RisultatoAzione agisci(string input)
     {
         string azione = input.ToLowerInvariant().Trim();
@@ -379,6 +479,9 @@ public class IncontroMercante : IStato
             return RisultatoAzione.Errore;
         }
     }
+    /// <summary>
+    /// Nessuna operazione di pulizia necessaria.
+    /// </summary>
     public void esci()
     {
         return;
