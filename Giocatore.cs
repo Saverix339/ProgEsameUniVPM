@@ -44,24 +44,53 @@ public class Giocatore : IDannegiabile
     public int Oro {get; set;}
 
     /// <summary>Inventario degli oggetti trasportati (stack LIFO).</summary>
-    public Stack<Oggetto> Inventario {get; private set;} = new();
+    [JsonInclude]
+    [JsonPropertyName("Inventario")]
+    private Stack<Oggetto> _inventario = new();
+    [JsonIgnore]
+    public Stack<Oggetto> Inventario => _inventario;
     /// <summary>Capacità massima dell'inventario (in unità di peso).</summary>
-    public int InventarioMax {get; private set;} = 10;
+    [JsonInclude]
+    [JsonPropertyName("InventarioMax")]
+    private int _inventarioMax = 10;
+    [JsonIgnore]
+    public int InventarioMax => _inventarioMax;
 
     /// <summary>Arma attualmente equipaggiata, o <c>null</c>.</summary>
-    public Armi? Arma { get; private set; }
+    [JsonInclude]
+    [JsonPropertyName("Arma")]
+    private Armi? _arma;
+    [JsonIgnore]
+    public Armi? Arma => _arma;
 
     /// <summary>Modificatore da applicare al danno in uscita (può essere negativo).</summary>
     public int ModificatoreDanno { get; set; }
 
     /// <summary>Equipaggia un'arma, sostituendo quella attuale.</summary>
     /// <param name="arma">L'arma da equipaggiare.</param>
-    public void EquipaggiaArma(Armi arma) => Arma = arma;
+    public void EquipaggiaArma(Armi arma) => _arma = arma;
+
+    /// <summary>
+    /// Ricostruisce l'<see cref="Armi.AbilitaArma"/> dell'arma equipaggiata in base al nome.
+    /// Necessario dopo il caricamento di un salvataggio, poiché le abilità non vengono serializzate.
+    /// </summary>
+    public void RicostruisciAbilitaArma()
+    {
+        if (_arma is null) return;
+        _arma.AbilitaArma = _arma.Nome switch
+        {
+            string n when n.StartsWith("Spada", StringComparison.InvariantCultureIgnoreCase) => new ColpoPotente(),
+            string n when n.StartsWith("Scudo", StringComparison.InvariantCultureIgnoreCase) => new RiflettiScudo(),
+            string n when n.StartsWith("Coltello", StringComparison.InvariantCultureIgnoreCase) => new Sanguinamento(),
+            _ => null
+        };
+    }
 
     [JsonInclude]
     private HashSet<string> _chiavi = new();
 
     /// <summary>Insieme degli ID delle chiavi possedute dal giocatore.</summary>
+    [JsonIgnore]
     public HashSet<string> Chiavi => _chiavi;
 
     /// <summary>Verifica se il giocatore possiede una chiave con l'ID specificato.</summary>
@@ -93,7 +122,8 @@ public class Giocatore : IDannegiabile
             UI.MostraMessaggio($"Hai raccolto: {chiave.Nome} (apre serrature {chiave.Serratura}).");
             return;
         }
-        AggiungiOggettoInventario(o);
+        if (!AggiungiOggettoInventario(o))
+            return;
         Logger.Get<Giocatore>().LogInformation("Oggetto raccolto: {Oggetto}", o.Nome);
         UI.MostraMessaggio($"Hai raccolto: {o.Nome}.");
     }
@@ -102,6 +132,7 @@ public class Giocatore : IDannegiabile
     private List<StatusEffect> _statusEffects = new();
 
     /// <summary>Lista degli status effect attualmente attivi sul giocatore.</summary>
+    [JsonIgnore]
     public List<StatusEffect> StatusEffects => _statusEffects;
 
     /// <summary>
@@ -208,10 +239,11 @@ public class Giocatore : IDannegiabile
 
     /// <summary>
     /// Aggiunge un oggetto all'inventario. Per i consumabili, verifica che il peso totale
-    /// non superi la capacità massima.
+    /// non superi la capacità massima. Restituisce <c>false</c> se l'inventario è pieno.
     /// </summary>
     /// <param name="o">Oggetto da aggiungere all'inventario.</param>
-    public void AggiungiOggettoInventario(Oggetto o)
+    /// <returns><c>true</c> se l'oggetto è stato aggiunto, <c>false</c> se l'inventario è pieno.</returns>
+    public bool AggiungiOggettoInventario(Oggetto o)
     {
         if (o is Consumabili consAggiunto)
         {
@@ -226,10 +258,12 @@ public class Giocatore : IDannegiabile
             spazio += consAggiunto.peso;
             if(spazio > InventarioMax)
             {
-                return;
+                UI.MostraMessaggio($"Inventario pieno! Peso totale: {spazio - consAggiunto.peso}/{InventarioMax}, richiesto: +{consAggiunto.peso}.");
+                return false;
             }
         }
         Inventario.Push(o);
+        return true;
     }
 
     /// <summary>
@@ -297,9 +331,6 @@ public class Giocatore : IDannegiabile
     {
         {
             "attacca", Attacca
-        },
-        {
-            "abilità", UsaAbilitaArma
         }
     };
 
@@ -319,41 +350,55 @@ public class Giocatore : IDannegiabile
 
     /// <summary>
     /// Usa l'abilità speciale dell'arma equipaggiata contro il nemico.
-    /// Se non c'è un'arma equipaggiata, mostra un errore.
+    /// Sottrae la stamina richiesta; se insufficiente o se non c'è un'arma equipaggiata, restituisce <c>false</c>.
     /// </summary>
     /// <param name="contesto">Contesto di esplorazione corrente (non utilizzato direttamente).</param>
     /// <param name="nem">Nemico bersaglio dell'abilità.</param>
-    public static void UsaAbilitaArma(EsplorazioneStanza contesto, Nemico nem)
+    /// <returns><c>true</c> se l'abilità è stata eseguita, <c>false</c> se è fallita.</returns>
+    public static bool UsaAbilitaArma(EsplorazioneStanza contesto, Nemico nem)
     {
         try{
             Armi armaEquipaggiata = GameManager.Giocatore.Arma ?? throw new NullReferenceException();
-            if(armaEquipaggiata.AbilitaArma != null)
-            {
-                Logger.Get<Giocatore>().LogDebug("Abilità arma usata: {Abilita} su {Nemico}", armaEquipaggiata.AbilitaArma.Nome, nem.Nome);
-                armaEquipaggiata.AbilitaArma?.Esegui(GameManager.Giocatore, nem);
-            }
+            if(armaEquipaggiata.AbilitaArma == null)
+                throw new NullReferenceException();
+            if (!GameManager.Giocatore.CambiaStamina(-armaEquipaggiata.stamina))
+                return false;
+            Logger.Get<Giocatore>().LogDebug("Abilità arma usata: {Abilita} su {Nemico}", armaEquipaggiata.AbilitaArma.Nome, nem.Nome);
+            armaEquipaggiata.AbilitaArma.Esegui(GameManager.Giocatore, nem);
+            return true;
         }
         catch (NullReferenceException)
         {
             Logger.Get<Giocatore>().LogWarning("Tentativo uso abilità senza arma equipaggiata");
             UI.MostraErrore("Nessuna arma.");
+            return false;
         }
     }
 
     /// <summary>
     /// Usa il consumabile in cima all'inventario (stack LIFO).
+    /// Restituisce <c>false</c> se l'inventario è vuoto o l'oggetto in cima non è un consumabile.
     /// </summary>
     /// <param name="contesto">Contesto di esplorazione corrente (non utilizzato direttamente).</param>
     /// <param name="nem">Nemico corrente (non utilizzato direttamente).</param>
-    public static void UsaConsumabile(EsplorazioneStanza contesto, Nemico nem)
+    /// <returns><c>true</c> se il consumabile è stato usato, <c>false</c> altrimenti.</returns>
+    public static bool UsaConsumabile(EsplorazioneStanza contesto, Nemico nem)
     {
+        if (GameManager.Giocatore.Inventario.Count == 0)
+        {
+            UI.MostraMessaggio("Il tuo inventario è vuoto.");
+            return false;
+        }
         GameManager.Giocatore.Inventario.TryPeek(out var ogg);
         if(ogg is Consumabili)
         {
             Consumabili consumabile = (Consumabili)GameManager.Giocatore.Inventario.Pop();
             Logger.Get<Giocatore>().LogInformation("Consumabile usato: {Oggetto} (HP: {HP}, Stam: {Stam})", consumabile.Nome, GameManager.Giocatore.PuntiVita, GameManager.Giocatore.Stamina);
             consumabile.Usa();
-        };
+            return true;
+        }
+        UI.MostraMessaggio("L'ultimo oggetto nell'inventario non è un consumabile.");
+        return false;
     }
 }
 

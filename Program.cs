@@ -40,6 +40,7 @@ class Program
                 if (salv is not null)
                 {
                     GameManager.Giocatore = salv.Giocatore;
+                    GameManager.Giocatore.RicostruisciAbilitaArma();
                     JsonSalvataggio.ApplicaMondo(salv.Mondo);
                     caricato = true;
                     log.LogInformation("Salvataggio caricato con successo per {Nome}", GameManager.Giocatore.Nome);
@@ -105,6 +106,7 @@ class Program
             if (salv is not null)
             {
                 GameManager.Giocatore = salv.Giocatore;
+                GameManager.Giocatore.RicostruisciAbilitaArma();
                 JsonSalvataggio.ApplicaMondo(salv.Mondo);
                 Logger.Get<Program>().LogInformation("Partita caricata per {Nome}", GameManager.Giocatore.Nome);
             }
@@ -376,11 +378,13 @@ public class Combattimento : IStato
                     break;
                 case "abilita":
                     Logger.Get<Combattimento>().LogDebug("Giocatore usa abilità arma");
-                    Giocatore.UsaAbilitaArma(contestoCombattimento, Avversario);
+                    if (!Giocatore.UsaAbilitaArma(contestoCombattimento, Avversario))
+                        return RisultatoAzione.Errore;
                     break;
                 case "usa":
                     Logger.Get<Combattimento>().LogDebug("Giocatore usa consumabile");
-                    Giocatore.UsaConsumabile(contestoCombattimento, Avversario);
+                    if (!Giocatore.UsaConsumabile(contestoCombattimento, Avversario))
+                        return RisultatoAzione.Errore;
                     break;
                 case "scappa":
                     Logger.Get<Combattimento>().LogDebug("Giocatore tenta la fuga");
@@ -475,7 +479,9 @@ public class IncontroMercante : IStato
         try
         {
             var carrello = Vendita.Find(x => x.oggetto.Nome.Equals(input, StringComparison.CurrentCultureIgnoreCase));
-            GameManager.Giocatore.AggiungiOggettoInventario(carrello?.oggetto ?? throw new ArgumentNullException("Oggetto"));
+            if (carrello is null) throw new ArgumentNullException("Oggetto");
+            if (!GameManager.Giocatore.AggiungiOggettoInventario(carrello.oggetto))
+                return RisultatoAzione.Errore;
             Logger.Get<IncontroMercante>().LogInformation("Acquistato: {Oggetto}", carrello.oggetto.Nome);
             Vendita.Remove(carrello);
             if (Vendita.Count == 0)

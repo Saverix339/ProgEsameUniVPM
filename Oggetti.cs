@@ -272,7 +272,7 @@ public class Consumabili : Oggetto
         Consumabili c = new()
         {
             Nome="Mela",
-            Descrizione="frutto che ti da un quarto di stamina",
+            Descrizione="frutto che ti ridà un quarto di stamina",
             peso=1,
             prezzo=5,
             recuperoStam = 0.25f
@@ -286,7 +286,7 @@ public class Consumabili : Oggetto
         Consumabili c = new()
         {
             Nome="Pozione_curativa_base",
-            Descrizione="pozione che ti un quarto di vita",
+            Descrizione="pozione che ti cura di un quarto di vita",
             peso=1,
             prezzo=5,
             recuperoPV = 0.25f
@@ -300,7 +300,7 @@ public class Consumabili : Oggetto
         Consumabili c = new()
         {
             Nome="Pane",
-            Descrizione="Pane molto utile per recuperare meta' stamina",
+            Descrizione="Pane molto buono, recupera meta' stamina",
             peso=2,
             prezzo=12,
             recuperoStam = 0.5f
@@ -410,11 +410,15 @@ public class RiflettiScudo : AbilitaArma
 
         effetto.onDamaged = (sender, danno, attaccante) =>
         {
-            int riflesso = danno / 2;
+            int riflesso = danno;
+            if(GameManager.Giocatore.Arma!.LivelloRarità >= 1)
+            {
+                riflesso += riflesso/2;
+            }
             nemico.Danneggia(riflesso);
             UI.MostraMessaggio($"Rifletti {riflesso} danni!");
             giocatore.StatusEffects.Remove(effetto); 
-            return danno - riflesso;
+            return 0;
         };
 
         giocatore.StatusEffects.Add(effetto);

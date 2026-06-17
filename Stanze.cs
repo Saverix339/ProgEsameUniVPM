@@ -308,7 +308,7 @@ public class Stanza
             "raccogli pozione",
             "Raccogli Pozione",
             "Raccogli una pozione curativa dalla mensola.",
-            () => { GameManager.Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base()); UI.MostraMessaggio("Hai raccolto una pozione curativa!"); }
+            () => { if (GameManager.Giocatore.AggiungiOggettoInventario(Consumabili.Pozione_curativa_base())) UI.MostraMessaggio("Hai raccolto una pozione curativa!"); }
         );
         s.AggiungiAzione(
             "raccogli chiave",
