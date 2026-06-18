@@ -123,3 +123,5 @@
 [2026-06-18 11:13:00] [DEBUG] GameManager          Transizione stato: CreazionePersonaggio -> EsplorazioneStanza
 [2026-06-18 11:13:00] [INFORMATION] ProgEsameUniVPM.EsplorazioneStanza Entrato in Ingresso (Livello 0)
 [2026-06-18 11:13:00] [INFORMATION] ProgEsameUniVPM.Program Salvataggio caricato con successo per savi
+[2026-06-18 21:53:54] [INFORMATION] ProgEsameUniVPM.Program ====INIZIO GIOCO====
+[2026-06-18 21:53:54] [ERROR] GameManager          Errore caricamento config.json

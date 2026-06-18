@@ -14,14 +14,14 @@ public static class GameManager
 {
     /// <summary>Il giocatore controllato dall'utente.</summary>
     public static Giocatore Giocatore { get; set; } = null!;
+    /// <summary>Configurazione globale caricata da config.json.</summary>
+    public static Configs Config { get; private set; } = new();
     /// <summary>La stanza in cui si trova attualmente il giocatore.</summary>
     public static Stanza StanzaCorrente {get; set;} = Mappa.Verso(new Coord(0, 0)) ?? Stanza.Ingresso(new Coord(0, 0));
     /// <summary>Lo stato attivo della state machine di gioco (es. esplorazione, combattimento, mercante).</summary>
     public static IStato? StatoGioco = new CreazionePersonaggio();
     /// <summary>Ultima direzione di movimento del giocatore. Usata in caso di fuga dal combattimento per tornare indietro.</summary>
     public static Direzione? UltimaDirezione;
-    /// <summary>Configurazione globale caricata da config.json.</summary>
-    public static Configs Config { get; private set; } = new();
 
     /// <summary>
     /// Carica la configurazione da config.json.
