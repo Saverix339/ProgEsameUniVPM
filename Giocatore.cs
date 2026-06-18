@@ -25,7 +25,7 @@ public interface IDannegiabile
 public class Giocatore : IDannegiabile
 {
     /// <summary>Nome del personaggio.</summary>
-    public string Nome {get; private set;}  = "";
+    public string Nome {get; set;}  = "";
 
     /// <summary>Punti vita attuali.</summary>
     public int PuntiVita {get; set;}
@@ -137,16 +137,17 @@ public class Giocatore : IDannegiabile
 
     /// <summary>
     /// Costruttore usato per la deserializzazione JSON.
+    /// I nomi dei parametri devono corrispondere (case-insensitive) a proprietà o campi della classe.
     /// </summary>
-    /// <param name="nome">Nome del personaggio.</param>
-    /// <param name="pvMax">Punti vita massimi (default: 20).</param>
-    /// <param name="staminaMax">Stamina massima (default: 10).</param>
+    /// <param name="nome">Nome del personaggio (match con <see cref="Nome"/>).</param>
+    /// <param name="puntiVitaMax">Punti vita massimi (match con <see cref="PuntiVitaMax"/>).</param>
+    /// <param name="staminaMax">Stamina massima (match con <see cref="StaminaMax"/>).</param>
     [JsonConstructor]
-    public Giocatore(string nome, int pvMax = 100, int staminaMax = 20)
+    public Giocatore(string nome, int puntiVitaMax = 100, int staminaMax = 20)
     {
         Nome = nome;
-        PuntiVita = pvMax;
-        PuntiVitaMax = pvMax;
+        PuntiVita = puntiVitaMax;
+        PuntiVitaMax = puntiVitaMax;
         Stamina = staminaMax;
         StaminaMax = staminaMax;
         Oro = 0;

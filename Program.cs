@@ -100,23 +100,23 @@ class Program
             risultato = RisultatoAzione.ComandoSpeciale;
             return;
         }
-        if(input == "carica")
-        {
-            var salv = JsonSalvataggio.caricaSalvataggio();
-            if (salv is not null)
-            {
-                GameManager.Giocatore = salv.Giocatore;
-                GameManager.Giocatore.RicostruisciAbilitaArma();
-                JsonSalvataggio.ApplicaMondo(salv.Mondo);
-                Logger.Get<Program>().LogInformation("Partita caricata per {Nome}", GameManager.Giocatore.Nome);
-            }
-            else
-            {
-                Logger.Get<Program>().LogWarning("Caricamento fallito");
-            }
-            risultato = RisultatoAzione.ComandoSpeciale;
-            return;
-        }
+        // if(input == "carica")
+        // {
+        //     var salv = JsonSalvataggio.caricaSalvataggio();
+        //     if (salv is not null)
+        //     {
+        //         GameManager.Giocatore = salv.Giocatore;
+        //         GameManager.Giocatore.RicostruisciAbilitaArma();
+        //         JsonSalvataggio.ApplicaMondo(salv.Mondo);
+        //         Logger.Get<Program>().LogInformation("Partita caricata per {Nome}", GameManager.Giocatore.Nome);
+        //     }
+        //     else
+        //     {
+        //         Logger.Get<Program>().LogWarning("Caricamento fallito");
+        //     }
+        //     risultato = RisultatoAzione.ComandoSpeciale;
+        //     return;
+        // }
         risultato = null;
     }
 }
@@ -483,6 +483,16 @@ public class IncontroMercante : IStato
         {
             var carrello = Vendita.Find(x => x.oggetto.Nome.Equals(input, StringComparison.CurrentCultureIgnoreCase));
             if (carrello is null) throw new ArgumentNullException("Oggetto");
+            if(carrello.oggetto.Valore > GameManager.Giocatore.Oro)
+            {
+                Logger.Get<IncontroMercante>().LogDebug("Mercante: Oro mancante.");
+                UI.MostraMessaggio($"Ahia! Costa troppo. Ti serve più oro.");
+                return RisultatoAzione.Continua;
+            }
+            else
+            {
+                GameManager.Giocatore.Oro -= carrello.oggetto.Valore;
+            }
             if (carrello.oggetto is OggettoChiave chiave)
             {
                 GameManager.Giocatore.DaiChiave(chiave.Serratura);
@@ -497,6 +507,7 @@ public class IncontroMercante : IStato
                 Logger.Get<IncontroMercante>().LogInformation("Acquistato: {Oggetto}", carrello.oggetto.Nome);
             }
             Vendita.Remove(carrello);
+            UI.MostraMessaggio($"Oro rimanente: {GameManager.Giocatore.Oro}.");
             if (Vendita.Count == 0)
             {
                 Logger.Get<IncontroMercante>().LogDebug("Mercante: merce esaurita, se ne va");
