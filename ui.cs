@@ -255,12 +255,12 @@ public static class UI
     }
 
     /// <summary>
-    /// Mostra l'animazione testuale del teletrasporto verso una destinazione.
+    /// Mostra il testo del teletrasporto verso una destinazione.
     /// </summary>
     /// <param name="nomeDestinazione">Nome della stanza di destinazione.</param>
     public static void MostraTeletrasporto(string nomeDestinazione)
     {
-        Console.WriteLine("Il cerchio runico si illumina! Vieni avvolto da una luce accecante...");
-        Console.WriteLine($"...e riappaiono nella {nomeDestinazione}.");
+        Console.WriteLine("Ti senti avvolto dalla strana energia.");
+        Console.WriteLine($"Sei stato teletrasportato in {nomeDestinazione}.");
     }
 }

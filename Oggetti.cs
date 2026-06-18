@@ -1,3 +1,4 @@
+using System.Formats.Tar;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -424,7 +425,7 @@ public class RiflettiScudo : AbilitaArma
 }
 
 /// <summary>
-/// Abilità della Spada: carica un colpo potente che raddoppia il danno del prossimo attacco.
+/// Abilità della Spada: carica un colpo potente che triplica il danno del prossimo attacco.
 /// Applica un bonus al <see cref="Giocatore.ModificatoreDanno"/> pari alla potenza dell'arma,
 /// della durata di 2 turni (l'attacco corrente + il successivo).
 /// </summary>
@@ -434,6 +435,7 @@ public class ColpoPotente : AbilitaArma
     public override string Descrizione { get; set;} = "Raddoppia il danno del prossimo attacco";
     public override int CostoStamina { get; set; } = 3;
     public override Target TargetAbilita { get; set; } = Target.Nemico;
+    int Mult = 3;
 
     public override void Esegui(object? owner, object? targetnem)
     {
@@ -452,8 +454,8 @@ public class ColpoPotente : AbilitaArma
             turniRimanenti = 2
         };
 
-        giocatore.ModificatoreDanno += potenzaArma;
-        effetto.onRemove = (sender) => giocatore.ModificatoreDanno -= potenzaArma;
+        giocatore.ModificatoreDanno += potenzaArma *(Mult -1);
+        effetto.onRemove = (sender) => giocatore.ModificatoreDanno -= potenzaArma *(Mult -1);
 
         giocatore.StatusEffects.Add(effetto);
     }
@@ -469,11 +471,14 @@ public class Sanguinamento : AbilitaArma
     public override string Descrizione { get; set;} = "Infligge 2 danni da sanguinamento per 3 turni";
     public override int CostoStamina { get; set; } = 2;
     public override Target TargetAbilita { get; set; } = Target.Nemico;
+    int danno = 2;
+    bool raddoppiaDanno => TargetAbilita == Target.Nemico || GameManager.Giocatore.Arma!.LivelloRarità >= 1;
 
     public override void Esegui(object? owner, object? targetnem)
     {
         var giocatore = (Giocatore)owner!;
         var nemico = (Nemico)targetnem!;
+
 
         UI.MostraMessaggio($"Il coltello affonda nella carne di {nemico.Nome}!");
 
@@ -486,8 +491,9 @@ public class Sanguinamento : AbilitaArma
 
         effetto.onTurnStart = (sender) =>
         {
-            nemico.Danneggia(2);
+            
             UI.MostraMessaggio($"{nemico.Nome} sanguina!");
+            nemico.Danneggia(raddoppiaDanno ? danno : danno *2);
         };
 
         nemico.statusEffects.Add(effetto);

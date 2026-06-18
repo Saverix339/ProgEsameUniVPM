@@ -16,6 +16,7 @@ public class Nemico : IDannegiabile
     public int Salute {get; set;}
     /// <summary>Punti salute massimi.</summary>
     public int SaluteMax;
+    public bool Miniboss = false;
 
     /// <summary>Lista delle abilità che il nemico può usare in combattimento. Non serializzabile.</summary>
     [JsonIgnore]
@@ -129,7 +130,8 @@ public class Nemico : IDannegiabile
                         StatusEffect.Indebolimento(Target.Giocatore);
                     }
                 }
-            }
+            },
+            Miniboss = true
         };
         s.Pesa();
         return s;
@@ -169,7 +171,8 @@ public class Nemico : IDannegiabile
                         StatusEffect.Indebolimento(Target.Giocatore);
                     }
                 }
-            }
+            },
+            Miniboss = true
         };
         s.Pesa();
         return s;

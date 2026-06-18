@@ -435,7 +435,7 @@ public class Stanza
         {
             Id = id,
             Nome = "Stanza Teletrasporto",
-            Descrizione = "Una stanza avvolta da un alone di magia. Al centro, un cerchio runico pulsa di energia arcana.",
+            Descrizione = "Una strana energia proviene da questa stanza.",
             Livello = 0,
             Coordinate = posizione
         };
@@ -446,7 +446,7 @@ public class Stanza
             () =>
             {
                 Random rng = new Random();
-                var altreStanze = Mappa.Stanze.Values.Where(st => st.Id != "teletrasporto").ToList();
+                var altreStanze = Mappa.Stanze.Values.Where(st => st.Id != "teletrasporto" && st.Id != "boss").ToList();
                 if (altreStanze.Count == 0)
                 {
                     Logger.Get<Stanza>().LogWarning("Teletrasporto: nessuna destinazione disponibile");
@@ -593,7 +593,7 @@ public class Stanza
                 Serratura = "chiave_boss",
                 ChiaveId = "chiave_boss",
                 IdSalvataggio = "chiave_boss_mercante",
-                Valore = 50
+                Valore = 100
             }
         });
         return s;

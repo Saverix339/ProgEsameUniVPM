@@ -414,6 +414,7 @@ public class Combattimento : IStato
             {
                 FlagNemicoSconfitto = true;
                 int oro = new Random().Next(5, 15);
+                if(Avversario.Miniboss == true) {oro += new Random().Next(15, 30);}
                 GameManager.Giocatore.AggiungiOro(oro);
                 Logger.Get<Combattimento>().LogInformation("{Nemico} sconfitto! Oro ottenuto: {Oro}", Avversario.Nome, oro);
                 UI.MostraVittoria(Avversario, oro);
