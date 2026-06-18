@@ -1,4 +1,9 @@
 namespace ProgEsameUniVPM;
+
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 using Microsoft.Extensions.Logging;
 
 /// <summary>
@@ -15,6 +20,33 @@ public static class GameManager
     public static IStato? StatoGioco = new CreazionePersonaggio();
     /// <summary>Ultima direzione di movimento del giocatore. Usata in caso di fuga dal combattimento per tornare indietro.</summary>
     public static Direzione? UltimaDirezione;
+    /// <summary>Configurazione globale caricata da config.json.</summary>
+    public static Configs Config { get; private set; } = new();
+
+    /// <summary>
+    /// Carica la configurazione da config.json.
+    /// </summary>
+    public static void CaricaConfig()
+    {
+        const string percorso = "config.json";
+        if (File.Exists(percorso))
+        {
+            try
+            {
+                Config = JsonSerializer.Deserialize<Configs>(File.ReadAllText(percorso)) ?? new();
+                Logger.For("GameManager").LogInformation("Config caricata: permadeath={Permadeath}, hardmode={Hardmode}", Config.Permadeath, Config.Hardmode);
+            }
+            catch (Exception ex)
+            {
+                Logger.For("GameManager").LogError(ex, "Errore caricamento config.json");
+                Config = new();
+            }
+        }
+        else
+        {
+            Logger.For("GameManager").LogWarning("config.json non trovato, usando default");
+        }
+    }
 
     /// <summary>
     /// Metodo placeholder per avanzamento (non implementato).
@@ -88,4 +120,16 @@ public static class GameManager
         }
         CambiaStato(esplorazione);
     }
+}
+
+/// <summary>
+/// Configurazione globale del gioco caricata da config.json.
+/// Contiene flag di permadeath e hardmode.
+/// </summary>
+public class Configs
+{
+    /// <summary>Se true, il salvataggio viene eliminato alla morte del giocatore.</summary>
+    public bool Permadeath { get; set; }
+    /// <summary>Se true, i nemici sono potenziati (non implementato).</summary>
+    public bool Hardmode { get; set; }
 }

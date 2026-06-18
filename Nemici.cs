@@ -63,6 +63,7 @@ public class Nemico : IDannegiabile
     /// <returns>Un nuovo Mimic pronto per il combattimento.</returns>
     public static Nemico Mimic()
     {
+        var hardmode = GameManager.Config.Hardmode;
         var s = new Nemico()
         {
             Nome = "Mimic",
@@ -74,7 +75,7 @@ public class Nemico : IDannegiabile
                 new AbilitaNemico
                 {
                     Nome = "Morso",
-                    Danno = 10,
+                    Danno = hardmode ? 15 : 10,
                     PesoProbabilita = 1,
                     AttaccaGiocatore = (gioc, nem, dan) =>
                     {
@@ -86,7 +87,7 @@ public class Nemico : IDannegiabile
                     Nome = "Cura",
                     PesoProbabilita = 1,
                     CondizioneSpeciale = (gioc, nem) => nem.Salute < (nem.SaluteMax /2),
-                    EffettiSpeciali = (gioc, nem) => nem.Cura(20)
+                    EffettiSpeciali = (gioc, nem) => nem.Cura(hardmode ? 15 : 10)
                 }
             }
         };
@@ -100,6 +101,7 @@ public class Nemico : IDannegiabile
     /// <returns>Un nuovo Maestro d'Armi pronto per il combattimento.</returns>
     public static Nemico MaestroArmi()
     {
+        var hardmode = GameManager.Config.Hardmode;
         var s = new Nemico()
         {
             Nome = "Maestro",
@@ -111,7 +113,7 @@ public class Nemico : IDannegiabile
                 new AbilitaNemico
                 {
                     Nome = "Taglio",
-                    Danno = 15,
+                    Danno = hardmode ? 20: 15,
                     PesoProbabilita = 2,
                     AttaccaGiocatore = (gioc, nem, dan) =>
                     {
@@ -139,6 +141,7 @@ public class Nemico : IDannegiabile
     /// <returns>Un nuovo Guardiano della Cripta pronto per il combattimento.</returns>
     public static Nemico Guardiano()
     {
+        var hardmode = GameManager.Config.Hardmode;
         var s = new Nemico()
         {
             Nome = "Guardiano Della Cripta",
@@ -150,7 +153,7 @@ public class Nemico : IDannegiabile
                 new AbilitaNemico
                 {
                     Nome = "Colpo di Scudo",
-                    Danno = 10,
+                    Danno = hardmode ? 15: 10,
                     PesoProbabilita = 2,
                     AttaccaGiocatore = (gioc, nem, dan) =>
                     {
@@ -241,7 +244,7 @@ public class Nemico : IDannegiabile
         if (utilizzabili.Count == 0)
             throw new Exception("Nessuna abilità utilizzabile");
         int pesoTot = utilizzabili.Sum(a => a.PesoProbabilita);
-        int risultato = rand.Next(pesoTot + 1);
+        int risultato = rand.Next(1, pesoTot + 1);
         foreach(var a in utilizzabili)
         {
             risultato -= a.PesoProbabilita;

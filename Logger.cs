@@ -21,6 +21,11 @@ public static class Logger
         _factory = factory;
     }
 
+    public static void Shutdown()
+    {
+        _factory!.Dispose();
+    }
+
     /// <summary>
     /// Restituisce un logger tipizzato per la categoria <typeparamref name="T"/>.
     /// </summary>

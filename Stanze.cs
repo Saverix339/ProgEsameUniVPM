@@ -181,14 +181,14 @@ public class Stanza
     }
 
     /// <summary>
-    /// Raccoglie un oggetto dalla stanza dato il suo GUID.
+    /// Raccoglie un oggetto dalla stanza dato il suo Id.
     /// </summary>
-    /// <param name="id">GUID dell'oggetto da raccogliere.</param>
+    /// <param name="id">ID salvataggio dell'oggetto da raccogliere.</param>
     /// <param name="oggetto">L'oggetto raccolto, o <c>null</c> se non trovato.</param>
     /// <returns><c>true</c> se l'oggetto è stato trovato e rimosso.</returns>
-    public bool RaccogliOggetto(Guid id, out Oggetto? oggetto)
+    public bool RaccogliOggetto(string id, out Oggetto? oggetto)
     {
-        var trovato = OggettiStanza.FirstOrDefault(o => o.oggetto.Id == id);
+        var trovato = OggettiStanza.FirstOrDefault(o => o.oggetto.IdSalvataggio == id);
         if (trovato is null) { oggetto = null; return false; }
         oggetto = trovato.oggetto;
         OggettiStanza.Remove(trovato);
@@ -223,9 +223,7 @@ public class Stanza
             $"Raccogli {o.Nome} da terra.",
             () =>
             {
-                var trovato = OggettiStanza.FirstOrDefault(ot => ot.oggetto.IdSalvataggio == idSalvataggio);
-                if (trovato is null) { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); return; }
-                var oggetto = trovato.oggetto;
+                if (RaccogliOggetto(idSalvataggio, out var oggetto)) { UI.MostraMessaggio("Non c'è nulla da raccogliere qui."); return; }
                 if (oggetto is Armi arma)
                 {
                     GameManager.Giocatore.EquipaggiaArma(arma);
@@ -238,10 +236,9 @@ public class Stanza
                 }
                 else
                 {
-                    if (!GameManager.Giocatore.AggiungiOggettoInventario(oggetto)) return;
-                    UI.MostraMessaggio($"Hai raccolto: {oggetto.Nome}.");
+                    if (!GameManager.Giocatore.AggiungiOggettoInventario(oggetto!)) return;
+                    UI.MostraMessaggio($"Hai raccolto: {oggetto!.Nome}.");
                 }
-                OggettiStanza.Remove(trovato);
                 RimuoviAzione(idAzione);
             }
         );
@@ -595,7 +592,8 @@ public class Stanza
                 Descrizione = "Una chiave pesante con incisioni oscure. Apre la porta verso la sala del boss (chiave_boss).",
                 Serratura = "chiave_boss",
                 ChiaveId = "chiave_boss",
-                IdSalvataggio = "chiave_boss_mercante"
+                IdSalvataggio = "chiave_boss_mercante",
+                Valore = 50
             }
         });
         return s;

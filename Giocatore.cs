@@ -190,7 +190,7 @@ public class Giocatore : IDannegiabile
         {
             danno = StatusEffect.ProcessaDanno(_statusEffects, this, danno, null);
         }
-        int dannoEffettivo = danno - Difesa;
+        int dannoEffettivo = Math.Max(0, danno - Difesa);
         PuntiVita -= dannoEffettivo;
         Logger.Get<Giocatore>().LogDebug("Giocatore subisce {Danno} danni (difesa: {Difesa}, effettivi: {Effettivo}) (HP: {HP}/{Max})", danno, Difesa, dannoEffettivo, PuntiVita, PuntiVitaMax);
         UI.MostraDanno(GameManager.Giocatore.Nome, dannoEffettivo);
@@ -340,7 +340,7 @@ public class Giocatore : IDannegiabile
             Armi armaEquipaggiata = GameManager.Giocatore.Arma ?? throw new NullReferenceException();
             if(armaEquipaggiata.AbilitaArma == null)
                 throw new NullReferenceException();
-            if (!GameManager.Giocatore.CambiaStamina(-armaEquipaggiata.stamina))
+            if (!GameManager.Giocatore.CambiaStamina(-armaEquipaggiata.AbilitaArma.CostoStamina))
                 return false;
             Logger.Get<Giocatore>().LogDebug("Abilità arma usata: {Abilita} su {Nemico}", armaEquipaggiata.AbilitaArma.Nome, nem.Nome);
             armaEquipaggiata.AbilitaArma.Esegui(GameManager.Giocatore, nem);
@@ -791,6 +791,15 @@ public static class JsonSalvataggio
             return null;
         }
         Logger.For("JsonSalvataggio").LogInformation("Caricamento salvataggio da {File}", percorso);
-        return JsonSerializer.Deserialize<Salvataggio>(File.ReadAllText(percorso), Opzioni);
+        try
+        {
+            return JsonSerializer.Deserialize<Salvataggio>(File.ReadAllText(percorso), Opzioni);
+        }
+        catch (Exception ex)
+        {
+            Logger.For("JsonSalvataggio").LogError(ex, "Salvataggio non valido");
+            UI.MostraErrore("Il salvataggio non è compatibile o è corrotto.");
+            return null;
+        }
     }
 }

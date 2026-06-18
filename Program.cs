@@ -11,12 +11,14 @@ using Microsoft.Extensions.Logging;
 /// </summary>
 class Program
 {
+    static bool gamerunning = true;
     /// <summary>
     /// Entry point: inizializza il sistema di logging, carica un eventuale salvataggio
     /// e avvia il game loop principale.
     /// </summary>
     static void Main(string[] args)
     {
+        
         var services = new ServiceCollection();
         services.AddLogging(builder =>
         {
@@ -29,6 +31,7 @@ class Program
         var log = Logger.Get<Program>();
         log.LogInformation("====INIZIO GIOCO====");
         Console.WriteLine("====INIZIO====");
+        GameManager.CaricaConfig();
 
         bool caricato = false;
         if (File.Exists("salvataggio.json"))
@@ -67,9 +70,9 @@ class Program
             log.LogInformation("Nuova partita iniziata. Stanza iniziale: {Stanza}", GameManager.StanzaCorrente.Nome);
             GameManager.CambiaStato(new EsplorazioneStanza(GameManager.StanzaCorrente));
         }
-
+        
         // Game loop
-        while (true)
+        while (gamerunning)
         {
             if (GameManager.StatoGioco is null) break;
             string input = UI.Input(GameManager.Giocatore);
@@ -91,7 +94,8 @@ class Program
         if(input is "exit" or "quit")
         {
             Logger.Get<Program>().LogInformation("Uscita dal gioco");
-            Environment.Exit(1);
+            gamerunning = false;
+            Logger.Shutdown();
         }
         if(input == "salva")
         {
@@ -332,8 +336,7 @@ public class Combattimento : IStato
     /// <returns>Risultato dell'azione.</returns>
     public RisultatoAzione agisci(string input)
     {
-        StatusEffect.ProcessaTurno(GameManager.Giocatore.StatusEffects, GameManager.Giocatore);
-        StatusEffect.ProcessaTurno(Avversario.statusEffects, Avversario);
+        
 
         if (FlagNemicoSconfitto)
         {
@@ -343,6 +346,7 @@ public class Combattimento : IStato
 
         if (TurnoCorrente == Turno.Avversario)
         {
+            StatusEffect.ProcessaTurno(Avversario.statusEffects, Avversario);
             try
             {
                 var scelta = Avversario.ScegliAbilita(GameManager.Giocatore);
@@ -355,6 +359,7 @@ public class Combattimento : IStato
                 UI.MostraErrore("Qualcosa è andato storto!");
             }
             TurnoCorrente = Turno.Giocatore;
+            StatusEffect.ProcessaTurno(GameManager.Giocatore.StatusEffects, GameManager.Giocatore);
             if (GameManager.Giocatore.PuntiVita <= 0)
             {
                 Logger.Get<Combattimento>().LogInformation("Giocatore sconfitto da {Nemico}", Avversario.Nome);
@@ -369,7 +374,7 @@ public class Combattimento : IStato
             string azione = input.ToLowerInvariant().Trim();
             if (string.IsNullOrEmpty(azione))
                 return RisultatoAzione.Errore;
-
+            
             switch (azione)
             {
                 case "attacca":
@@ -487,11 +492,7 @@ public class IncontroMercante : IStato
             {
                 Logger.Get<IncontroMercante>().LogDebug("Mercante: Oro mancante.");
                 UI.MostraMessaggio($"Ahia! Costa troppo. Ti serve più oro.");
-                return RisultatoAzione.Continua;
-            }
-            else
-            {
-                GameManager.Giocatore.Oro -= carrello.oggetto.Valore;
+                return RisultatoAzione.Errore;
             }
             if (carrello.oggetto is OggettoChiave chiave)
             {
@@ -503,6 +504,7 @@ public class IncontroMercante : IStato
             {
                 if (!GameManager.Giocatore.AggiungiOggettoInventario(carrello.oggetto))
                     return RisultatoAzione.Errore;
+                GameManager.Giocatore.Oro -= carrello.oggetto.Valore;
                 UI.MostraMessaggio($"Hai acquistato: {carrello.oggetto.Nome}.");
                 Logger.Get<IncontroMercante>().LogInformation("Acquistato: {Oggetto}", carrello.oggetto.Nome);
             }

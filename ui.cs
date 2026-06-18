@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using Microsoft.Extensions.Logging;
 namespace ProgEsameUniVPM;
 
 /// <summary>
@@ -224,7 +226,12 @@ public static class UI
     /// <param name="g">Giocatore sconfitto.</param>
     public static void GameOver(Giocatore g)
     {
+        if (GameManager.Config.Permadeath && File.Exists("salvataggio.json"))
+        {
+            try { File.Delete("salvataggio.json"); } catch { Logger.For("GameManager").LogWarning("Impossibile Eliminare il File.");}
+        }
         Console.WriteLine($"\n===FINE===\n{g.Nome} è morto/a, premi un tasto per chiudere il gioco.");
+        Logger.Shutdown();
         Console.ReadKey();
         Environment.Exit(0);
     }
